@@ -1,0 +1,32 @@
+
+
+# .gitignore
+ 
+# NEVER commit your real environment file — it contains secrets
+.env
+ 
+# Python cache files — generated automatically, not part of your code
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+ 
+# Virtual environments
+venv/
+.venv/
+env/
+ 
+# pytest cache
+.pytest_cache/
+ 
+# SQLite database file — your data lives here locally
+# On EC2, this is managed separately (not in git)
+*.db
+ 
+# macOS junk
+.DS_Store
+ 
+# VS Code settings (optional — remove if you want to share these with teammates)
+.vscode/
+ 

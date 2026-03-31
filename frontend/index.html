@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Habit Tracker</title>
+    <style>
+      :root {
+        --bg: #f5f0e8;
+        --text: #1c1c1c;
+        --accent: #c8963e;
+        --card: #ffffff;
+        --sidebar: #1c1c1c;
+        --sidebar-text: #f5f0e8;
+        --border: #e7ddce;
+        --ok-bg: #e9f5ec;
+        --ok-text: #1f6c3f;
+        --danger: #b42318;
+        --shadow: 0 14px 34px rgba(84, 63, 32, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0 0 1rem;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+
+      body.modal-open {
+        overflow: hidden;
+      }
+
+      .app {
+        min-height: 100vh;
+        display: none;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 260px;
+        height: 100vh;
+        background: var(--sidebar);
+        color: var(--sidebar-text);
+        padding: 2rem 1.2rem;
+        box-shadow: 6px 0 20px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .brand {
+        --dot-size: 2px;
+        --dot-gap: 0.7px;
+        --letter-gap: 2.5px;
+        --line-gap: 5px;
+        --brand-scale: 1.22;
+        margin: 0 0 1.85rem;
+        display: grid;
+        justify-items: center;
+        gap: var(--line-gap);
+        width: 100%;
+        max-width: calc(220px / var(--brand-scale));
+        margin-inline: auto;
+        overflow: hidden;
+        contain: layout paint;
+        transform: scale(var(--brand-scale));
+        transform-origin: top center;
+      }
+
+      .brand-word {
+        display: flex;
+        justify-content: center;
+        gap: var(--letter-gap);
+        max-width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      .matrix-letter {
+        display: grid;
+        grid-template-columns: repeat(5, var(--dot-size));
+        grid-template-rows: repeat(7, var(--dot-size));
+        gap: var(--dot-gap);
+      }
+
+      .matrix-letter .dot {
+        width: var(--dot-size);
+        height: var(--dot-size);
+        border-radius: 999px;
+        background: #d2cabb;
+        opacity: 0.9;
+        grid-column: var(--x);
+        grid-row: var(--y);
+      }
+
+      .sidebar nav {
+        margin-top: 0.35rem;
+      }
+
+      .logout-btn {
+        margin-top: auto;
+        width: 100%;
+        text-align: left;
+        border: 1px solid rgba(245, 240, 232, 0.24);
+        border-radius: 10px;
+        background: rgba(245, 240, 232, 0.06);
+        color: #e8ddcf;
+        padding: 0.65rem 0.8rem;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .logout-btn:hover {
+        background: rgba(245, 240, 232, 0.12);
+      }
+
+      .nav-link {
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        border: 0;
+        border-left: 4px solid transparent;
+        color: #e8ddcf;
+        padding: 0.7rem 0.8rem;
+        margin-bottom: 0.45rem;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      .nav-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .nav-link.active {
+        border-left-color: var(--accent);
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .content {
+        margin-left: 260px;
+        min-height: 100vh;
+        padding: 2.25rem;
+      }
+
+      .sync-indicator {
+        min-height: 1.5rem;
+        font-size: 0.9rem;
+        margin-bottom: 0.8rem;
+        color: #745f3a;
+      }
+
+      .sync-indicator.success {
+        color: var(--ok-text);
+      }
+
+      .sync-indicator.error {
+        color: var(--danger);
+      }
+
+      .flash-message {
+        min-height: 1.4rem;
+        margin-bottom: 0.8rem;
+        font-size: 0.92rem;
+      }
+
+      .flash-message.success {
+        color: var(--ok-text);
+      }
+
+      .flash-message.error {
+        color: var(--danger);
+      }
+
+      .page {
+        display: none;
+      }
+
+      .page.active {
+        display: block;
+      }
+
+      h1,
+      h2,
+      .sentence {
+        font-family: Georgia, "Times New Roman", serif;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4vw, 3rem);
+        margin: 0;
+      }
+
+      .subhead {
+        margin-top: 0.45rem;
+        color: #5f5343;
+      }
+
+      .section-head {
+        margin-bottom: 0.35rem;
+      }
+
+      .dot-pattern {
+        position: relative;
+        width: 100%;
+        height: 156px;
+        margin-bottom: 12px;
+        overflow: hidden;
+      }
+
+      .dot-pattern span {
+        position: absolute;
+        left: var(--x);
+        top: var(--y);
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background-color: rgba(140, 140, 140, 0.85);
+        opacity: 0.82;
+      }
+
+      .dot-pattern span:nth-child(5n) {
+        width: 5px;
+        height: 5px;
+      }
+
+      .section-dots {
+        margin: 0.75rem 0 1rem;
+        text-align: center;
+        color: #c8963e;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 0.95rem;
+        letter-spacing: 0.45em;
+        user-select: none;
+      }
+
+      .stack {
+        display: grid;
+        gap: 0.9rem;
+        margin-top: 1.2rem;
+      }
+
+      .habit-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        border-radius: 14px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+
+      .habit-card input[type="checkbox"] {
+        width: auto;
+        padding: 0;
+        margin: 0;
+        flex: 0 0 auto;
+      }
+
+      .habit-card.done {
+        background: var(--ok-bg);
+      }
+
+      .done .sentence {
+        text-decoration: line-through;
+        opacity: 0.75;
+      }
+
+      .sentence {
+        font-size: 1.2rem;
+        margin: 0;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .quote,
+      .empty-message {
+        background: #fbf7ef;
+        border: 1px dashed #d9c8ae;
+        color: #5f4f3a;
+        border-radius: 14px;
+        padding: 1.1rem;
+      }
+
+      .all-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        border-radius: 14px;
+        padding: 1rem;
+      }
+
+      .badge {
+        display: inline-block;
+        margin-top: 0.65rem;
+        font-size: 0.78rem;
+        letter-spacing: 0.03em;
+        color: #6c4f1f;
+        background: #f6e3bc;
+        border: 1px solid #ebcd90;
+        border-radius: 999px;
+        padding: 0.2rem 0.65rem;
+      }
+
+      .delete-btn {
+        border: 1px solid #efb5ac;
+        color: #a12e1f;
+        background: #fff2ef;
+        border-radius: 10px;
+        padding: 0.35rem 0.55rem;
+        cursor: pointer;
+      }
+
+      .delete-btn:hover {
+        background: #ffe8e3;
+      }
+
+      .row-between {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.8rem;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 0.85rem;
+        max-width: 680px;
+      }
+
+      .custom-days {
+        display: none;
+        border: 1px solid #decdb2;
+        background: #fffaf1;
+        border-radius: 12px;
+        padding: 0.8rem;
+      }
+
+      .custom-days.active {
+        display: block;
+      }
+
+      .custom-days-title {
+        font-weight: 700;
+        margin: 0 0 0.6rem;
+      }
+
+      .days-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem 0.85rem;
+      }
+
+      .day-option {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-weight: 500;
+      }
+
+      .day-option input[type="checkbox"] {
+        width: auto;
+        margin: 0;
+        padding: 0;
+      }
+
+      .time-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 130px;
+        gap: 0.7rem;
+      }
+
+      .location-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 90px;
+        gap: 0.7rem;
+      }
+
+      label {
+        font-weight: 600;
+      }
+
+      .form-grid input,
+      .form-grid select,
+      .add-btn {
+        width: 100%;
+        padding: 0.72rem 0.78rem;
+        border-radius: 10px;
+        border: 1px solid #cdbb9f;
+        font: inherit;
+      }
+
+      .form-grid input:focus,
+      .form-grid select:focus {
+        outline: 2px solid #dfbe84;
+        outline-offset: 1px;
+      }
+
+      .preview {
+        margin-top: 0.95rem;
+        border: 1px solid #decdb2;
+        border-radius: 14px;
+        padding: 1rem;
+        background: #fffdf9;
+      }
+
+      .preview p {
+        margin: 0;
+        font-size: 1.5rem;
+      }
+
+      .preview.pending p {
+        color: #9b9488;
+      }
+
+      .add-btn {
+        margin-top: 0.35rem;
+        border: 0;
+        font-weight: 700;
+        background: var(--accent);
+        color: #23190a;
+        cursor: pointer;
+      }
+
+      .add-btn:hover {
+        filter: brightness(0.96);
+      }
+
+      .success-msg {
+        margin-top: 0.6rem;
+        color: var(--ok-text);
+      }
+
+      #userModal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.62);
+        z-index: 1200;
+      }
+
+      .user-modal-box {
+        width: min(420px, 100%);
+        background: #1f1f1f;
+        color: var(--sidebar-text);
+        border: 1px solid rgba(245, 240, 232, 0.16);
+        border-radius: 14px;
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+        padding: 1.2rem;
+      }
+
+      .user-modal-title {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(1.45rem, 3.5vw, 1.9rem);
+      }
+
+      .user-modal-subtitle {
+        margin: 0.45rem 0 0.95rem;
+        color: #d5c8b4;
+      }
+
+      .user-modal-form {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .user-modal-form input {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid rgba(245, 240, 232, 0.24);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--sidebar-text);
+        padding: 0.72rem 0.82rem;
+        font: inherit;
+      }
+
+      .user-modal-form input::placeholder {
+        color: #bfb4a2;
+      }
+
+      .user-modal-form input:focus-visible {
+        outline: 2px solid rgba(200, 150, 62, 0.75);
+        outline-offset: 1px;
+      }
+
+      .login-screen {
+        min-height: 100vh;
+        background: #f5f0e8;
+        color: #1c1c1c;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1.2rem;
+      }
+
+      .login-card {
+        width: min(520px, 100%);
+        background: #fdf9f2;
+        border: 1px solid #dfd1bd;
+        border-radius: 18px;
+        padding: 2.2rem 1.5rem;
+        text-align: center;
+        box-shadow: 0 16px 34px rgba(84, 63, 32, 0.11);
+      }
+
+      .login-title {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(2rem, 5vw, 2.8rem);
+      }
+
+      .login-tagline {
+        margin: 0.65rem 0 1.5rem;
+        color: #4c4236;
+      }
+
+      .google-login-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        width: min(320px, 100%);
+        border-radius: 999px;
+        border: 0;
+        background: #c8963e;
+        color: #251a0c;
+        text-decoration: none;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        transition: filter 140ms ease;
+      }
+
+      .google-login-btn:hover {
+        filter: brightness(0.95);
+      }
+
+      #saveUserBtn {
+        border: 0;
+        border-radius: 10px;
+        padding: 0.74rem 0.88rem;
+        font: inherit;
+        font-weight: 700;
+        color: #251a0c;
+        background: var(--accent);
+        cursor: pointer;
+        transition: filter 140ms ease;
+      }
+
+      #saveUserBtn:hover {
+        filter: brightness(0.95);
+      }
+
+      @media (max-width: 920px) {
+        .sidebar {
+          position: static;
+          width: 100%;
+          height: auto;
+          display: block;
+        }
+
+        .content {
+          margin-left: 0;
+          padding: 1rem;
+        }
+
+        .sentence {
+          font-size: 1.05rem;
+        }
+
+        .preview p {
+          font-size: 1.2rem;
+        }
+
+        .time-row {
+          grid-template-columns: 1fr;
+        }
+
+        .location-row {
+          grid-template-columns: 1fr;
+        }
+
+        .days-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .dot-pattern {
+          width: 100%;
+          height: 125px;
+          margin-bottom: 10px;
+        }
+
+        .brand {
+          --dot-size: 1.65px;
+          --dot-gap: 0.8px;
+          --letter-gap: 2px;
+          --line-gap: 4px;
+          --brand-scale: 1.08;
+          max-width: calc(100% / var(--brand-scale));
+          margin-bottom: 1.4rem;
+        }
+
+        .brand-word {
+          gap: var(--letter-gap);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <h2 class="brand" aria-label="Habit Tracker">
+          <span class="brand-word" aria-hidden="true">
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 1; --y: 1"></span><span class="dot" style="--x: 1; --y: 2"></span><span class="dot" style="--x: 1; --y: 3"></span><span class="dot" style="--x: 1; --y: 4"></span><span class="dot" style="--x: 1; --y: 5"></span><span class="dot" style="--x: 1; --y: 6"></span><span class="dot" style="--x: 1; --y: 7"></span><span class="dot" style="--x: 5; --y: 1"></span><span class="dot" style="--x: 5; --y: 2"></span><span class="dot" style="--x: 5; --y: 3"></span><span class="dot" style="--x: 5; --y: 4"></span><span class="dot" style="--x: 5; --y: 5"></span><span class="dot" style="--x: 5; --y: 6"></span><span class="dot" style="--x: 5; --y: 7"></span><span class="dot" style="--x: 2; --y: 4"></span><span class="dot" style="--x: 3; --y: 4"></span><span class="dot" style="--x: 4; --y: 4"></span>
+            </span>
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 2; --y: 1"></span><span class="dot" style="--x: 3; --y: 1"></span><span class="dot" style="--x: 4; --y: 1"></span><span class="dot" style="--x: 1; --y: 2"></span><span class="dot" style="--x: 5; --y: 2"></span><span class="dot" style="--x: 1; --y: 3"></span><span class="dot" style="--x: 5; --y: 3"></span><span class="dot" style="--x: 1; --y: 4"></span><span class="dot" style="--x: 2; --y: 4"></span><span class="dot" style="--x: 3; --y: 4"></span><span class="dot" style="--x: 4; --y: 4"></span><span class="dot" style="--x: 5; --y: 4"></span><span class="dot" style="--x: 1; --y: 5"></span><span class="dot" style="--x: 5; --y: 5"></span><span class="dot" style="--x: 1; --y: 6"></span><span class="dot" style="--x: 5; --y: 6"></span><span class="dot" style="--x: 1; --y: 7"></span><span class="dot" style="--x: 5; --y: 7"></span>
+            </span>
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 1; --y: 1"></span><span class="dot" style="--x: 2; --y: 1"></span><span class="dot" style="--x: 3; --y: 1"></span><span class="dot" style="--x: 4; --y: 1"></span><span class="dot" style="--x: 1; --y: 2"></span><span class="dot" style="--x: 5; --y: 2"></span><span class="dot" style="--x: 1; --y: 3"></span><span class="dot" style="--x: 5; --y: 3"></span><span class="dot" style="--x: 1; --y: 4"></span><span class="dot" style="--x: 2; --y: 4"></span><span class="dot" style="--x: 3; --y: 4"></span><span class="dot" style="--x: 4; --y: 4"></span><span class="dot" style="--x: 1; --y: 5"></span><span class="dot" style="--x: 5; --y: 5"></span><span class="dot" style="--x: 1; --y: 6"></span><span class="dot" style="--x: 5; --y: 6"></span><span class="dot" style="--x: 1; --y: 7"></span><span class="dot" style="--x: 2; --y: 7"></span><span class="dot" style="--x: 3; --y: 7"></span><span class="dot" style="--x: 4; --y: 7"></span>
+            </span>
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 1; --y: 1"></span><span class="dot" style="--x: 2; --y: 1"></span><span class="dot" style="--x: 3; --y: 1"></span><span class="dot" style="--x: 4; --y: 1"></span><span class="dot" style="--x: 5; --y: 1"></span><span class="dot" style="--x: 3; --y: 2"></span><span class="dot" style="--x: 3; --y: 3"></span><span class="dot" style="--x: 3; --y: 4"></span><span class="dot" style="--x: 3; --y: 5"></span><span class="dot" style="--x: 3; --y: 6"></span><span class="dot" style="--x: 1; --y: 7"></span><span class="dot" style="--x: 2; --y: 7"></span><span class="dot" style="--x: 3; --y: 7"></span><span class="dot" style="--x: 4; --y: 7"></span><span class="dot" style="--x: 5; --y: 7"></span>
+            </span>
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 1; --y: 1"></span><span class="dot" style="--x: 2; --y: 1"></span><span class="dot" style="--x: 3; --y: 1"></span><span class="dot" style="--x: 4; --y: 1"></span><span class="dot" style="--x: 5; --y: 1"></span><span class="dot" style="--x: 3; --y: 2"></span><span class="dot" style="--x: 3; --y: 3"></span><span class="dot" style="--x: 3; --y: 4"></span><span class="dot" style="--x: 3; --y: 5"></span><span class="dot" style="--x: 3; --y: 6"></span><span class="dot" style="--x: 3; --y: 7"></span>
+            </span>
+          </span>
+          <span class="brand-word" aria-hidden="true">
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 1; --y: 1"></span><span class="dot" style="--x: 2; --y: 1"></span><span class="dot" style="--x: 3; --y: 1"></span><span class="dot" style="--x: 4; --y: 1"></span><span class="dot" style="--x: 5; --y: 1"></span><span class="dot" style="--x: 3; --y: 2"></span><span class="dot" style="--x: 3; --y: 3"></span><span class="dot" style="--x: 3; --y: 4"></span><span class="dot" style="--x: 3; --y: 5"></span><span class="dot" style="--x: 3; --y: 6"></span><span class="dot" style="--x: 3; --y: 7"></span>
+            </span>
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 1; --y: 1"></span><span class="dot" style="--x: 2; --y: 1"></span><span class="dot" style="--x: 3; --y: 1"></span><span class="dot" style="--x: 4; --y: 1"></span><span class="dot" style="--x: 1; --y: 2"></span><span class="dot" style="--x: 5; --y: 2"></span><span class="dot" style="--x: 1; --y: 3"></span><span class="dot" style="--x: 5; --y: 3"></span><span class="dot" style="--x: 1; --y: 4"></span><span class="dot" style="--x: 2; --y: 4"></span><span class="dot" style="--x: 3; --y: 4"></span><span class="dot" style="--x: 4; --y: 4"></span><span class="dot" style="--x: 1; --y: 5"></span><span class="dot" style="--x: 3; --y: 5"></span><span class="dot" style="--x: 1; --y: 6"></span><span class="dot" style="--x: 4; --y: 6"></span><span class="dot" style="--x: 1; --y: 7"></span><span class="dot" style="--x: 5; --y: 7"></span>
+            </span>
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 2; --y: 1"></span><span class="dot" style="--x: 3; --y: 1"></span><span class="dot" style="--x: 4; --y: 1"></span><span class="dot" style="--x: 1; --y: 2"></span><span class="dot" style="--x: 5; --y: 2"></span><span class="dot" style="--x: 1; --y: 3"></span><span class="dot" style="--x: 5; --y: 3"></span><span class="dot" style="--x: 1; --y: 4"></span><span class="dot" style="--x: 2; --y: 4"></span><span class="dot" style="--x: 3; --y: 4"></span><span class="dot" style="--x: 4; --y: 4"></span><span class="dot" style="--x: 5; --y: 4"></span><span class="dot" style="--x: 1; --y: 5"></span><span class="dot" style="--x: 5; --y: 5"></span><span class="dot" style="--x: 1; --y: 6"></span><span class="dot" style="--x: 5; --y: 6"></span><span class="dot" style="--x: 1; --y: 7"></span><span class="dot" style="--x: 5; --y: 7"></span>
+            </span>
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 2; --y: 1"></span><span class="dot" style="--x: 3; --y: 1"></span><span class="dot" style="--x: 4; --y: 1"></span><span class="dot" style="--x: 1; --y: 2"></span><span class="dot" style="--x: 1; --y: 3"></span><span class="dot" style="--x: 1; --y: 4"></span><span class="dot" style="--x: 1; --y: 5"></span><span class="dot" style="--x: 1; --y: 6"></span><span class="dot" style="--x: 2; --y: 7"></span><span class="dot" style="--x: 3; --y: 7"></span><span class="dot" style="--x: 4; --y: 7"></span>
+            </span>
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 1; --y: 1"></span><span class="dot" style="--x: 5; --y: 1"></span><span class="dot" style="--x: 1; --y: 2"></span><span class="dot" style="--x: 4; --y: 2"></span><span class="dot" style="--x: 1; --y: 3"></span><span class="dot" style="--x: 3; --y: 3"></span><span class="dot" style="--x: 1; --y: 4"></span><span class="dot" style="--x: 2; --y: 4"></span><span class="dot" style="--x: 1; --y: 5"></span><span class="dot" style="--x: 3; --y: 5"></span><span class="dot" style="--x: 1; --y: 6"></span><span class="dot" style="--x: 4; --y: 6"></span><span class="dot" style="--x: 1; --y: 7"></span><span class="dot" style="--x: 5; --y: 7"></span>
+            </span>
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 1; --y: 1"></span><span class="dot" style="--x: 2; --y: 1"></span><span class="dot" style="--x: 3; --y: 1"></span><span class="dot" style="--x: 4; --y: 1"></span><span class="dot" style="--x: 5; --y: 1"></span><span class="dot" style="--x: 1; --y: 2"></span><span class="dot" style="--x: 1; --y: 3"></span><span class="dot" style="--x: 1; --y: 4"></span><span class="dot" style="--x: 2; --y: 4"></span><span class="dot" style="--x: 3; --y: 4"></span><span class="dot" style="--x: 4; --y: 4"></span><span class="dot" style="--x: 1; --y: 5"></span><span class="dot" style="--x: 1; --y: 6"></span><span class="dot" style="--x: 1; --y: 7"></span><span class="dot" style="--x: 2; --y: 7"></span><span class="dot" style="--x: 3; --y: 7"></span><span class="dot" style="--x: 4; --y: 7"></span><span class="dot" style="--x: 5; --y: 7"></span>
+            </span>
+            <span class="matrix-letter">
+              <span class="dot" style="--x: 1; --y: 1"></span><span class="dot" style="--x: 2; --y: 1"></span><span class="dot" style="--x: 3; --y: 1"></span><span class="dot" style="--x: 4; --y: 1"></span><span class="dot" style="--x: 1; --y: 2"></span><span class="dot" style="--x: 5; --y: 2"></span><span class="dot" style="--x: 1; --y: 3"></span><span class="dot" style="--x: 5; --y: 3"></span><span class="dot" style="--x: 1; --y: 4"></span><span class="dot" style="--x: 2; --y: 4"></span><span class="dot" style="--x: 3; --y: 4"></span><span class="dot" style="--x: 4; --y: 4"></span><span class="dot" style="--x: 1; --y: 5"></span><span class="dot" style="--x: 3; --y: 5"></span><span class="dot" style="--x: 1; --y: 6"></span><span class="dot" style="--x: 4; --y: 6"></span><span class="dot" style="--x: 1; --y: 7"></span><span class="dot" style="--x: 5; --y: 7"></span>
+            </span>
+          </span>
+        </h2>
+        <nav>
+          <button type="button" class="nav-link active" data-page="today">Today</button>
+          <button type="button" class="nav-link" data-page="all">All Habits</button>
+          <button type="button" class="nav-link" data-page="add">Add Habit</button>
+        </nav>
+        <button type="button" id="logout-btn" class="logout-btn">Logout</button>
+      </aside>
+
+      <main class="content">
+        <div id="sync-indicator" class="sync-indicator"></div>
+        <div id="flash-message" class="flash-message"></div>
+
+        <section id="page-today" class="page active">
+          <div class="section-head">
+            <div class="dot-pattern" aria-hidden="true">
+              <span style="--x: 1%; --y: 12%"></span><span style="--x: 3%; --y: 48%"></span><span style="--x: 6%; --y: 22%"></span><span style="--x: 8%; --y: 70%"></span><span style="--x: 10%; --y: 34%"></span><span style="--x: 12%; --y: 82%"></span><span style="--x: 14%; --y: 16%"></span><span style="--x: 16%; --y: 58%"></span><span style="--x: 18%; --y: 40%"></span><span style="--x: 20%; --y: 76%"></span>
+              <span style="--x: 22%; --y: 10%"></span><span style="--x: 24%; --y: 52%"></span><span style="--x: 26%; --y: 28%"></span><span style="--x: 28%; --y: 66%"></span><span style="--x: 30%; --y: 18%"></span><span style="--x: 32%; --y: 60%"></span><span style="--x: 34%; --y: 36%"></span><span style="--x: 36%; --y: 84%"></span><span style="--x: 38%; --y: 14%"></span><span style="--x: 40%; --y: 56%"></span>
+              <span style="--x: 42%; --y: 30%"></span><span style="--x: 44%; --y: 72%"></span><span style="--x: 46%; --y: 20%"></span><span style="--x: 48%; --y: 62%"></span><span style="--x: 50%; --y: 42%"></span><span style="--x: 52%; --y: 88%"></span><span style="--x: 54%; --y: 12%"></span><span style="--x: 56%; --y: 50%"></span><span style="--x: 58%; --y: 26%"></span><span style="--x: 60%; --y: 68%"></span>
+              <span style="--x: 62%; --y: 8%"></span><span style="--x: 64%; --y: 54%"></span><span style="--x: 66%; --y: 32%"></span><span style="--x: 68%; --y: 74%"></span><span style="--x: 70%; --y: 18%"></span><span style="--x: 72%; --y: 58%"></span><span style="--x: 74%; --y: 44%"></span><span style="--x: 76%; --y: 82%"></span><span style="--x: 78%; --y: 24%"></span><span style="--x: 80%; --y: 64%"></span>
+              <span style="--x: 82%; --y: 14%"></span><span style="--x: 84%; --y: 52%"></span><span style="--x: 86%; --y: 36%"></span><span style="--x: 88%; --y: 70%"></span><span style="--x: 90%; --y: 10%"></span><span style="--x: 92%; --y: 48%"></span><span style="--x: 94%; --y: 28%"></span><span style="--x: 95.5%; --y: 62%"></span><span style="--x: 96.8%; --y: 16%"></span><span style="--x: 97.8%; --y: 78%"></span>
+              <span style="--x: 2%; --y: 86%"></span><span style="--x: 7%; --y: 6%"></span><span style="--x: 13%; --y: 90%"></span><span style="--x: 19%; --y: 26%"></span><span style="--x: 27%; --y: 80%"></span><span style="--x: 35%; --y: 46%"></span><span style="--x: 47%; --y: 6%"></span><span style="--x: 59%; --y: 90%"></span><span style="--x: 73%; --y: 6%"></span><span style="--x: 91%; --y: 86%"></span>
+              <span style="--x: 0%; --y: 0%"></span><span style="--x: 100%; --y: 0%"></span><span style="--x: 0%; --y: 100%"></span><span style="--x: 100%; --y: 100%"></span><span style="--x: 50%; --y: 0%"></span><span style="--x: 50%; --y: 100%"></span><span style="--x: 25%; --y: 100%"></span><span style="--x: 75%; --y: 100%"></span><span style="--x: 6%; --y: 98%"></span><span style="--x: 94%; --y: 98%"></span><span style="--x: 33%; --y: 2%"></span><span style="--x: 67%; --y: 2%"></span>
+              <span style="--x: 11%; --y: 100%"></span><span style="--x: 21%; --y: 0%"></span><span style="--x: 41%; --y: 100%"></span><span style="--x: 61%; --y: 0%"></span><span style="--x: 81%; --y: 100%"></span><span style="--x: 98.8%; --y: 50%"></span>
+              <span style="--x: 5%; --y: 32%"></span><span style="--x: 15%; --y: 66%"></span><span style="--x: 29%; --y: 48%"></span><span style="--x: 43%; --y: 78%"></span><span style="--x: 57%; --y: 16%"></span><span style="--x: 71%; --y: 54%"></span><span style="--x: 85%; --y: 30%"></span><span style="--x: 96%; --y: 44%"></span>
+            </div>
+            <h1 id="today-date"></h1>
+            <p class="subhead">Your habits for today</p>
+          </div>
+          <div class="section-dots" aria-hidden="true">&#183; &#183; &#183;</div>
+          <div id="today-list" class="stack"></div>
+        </section>
+
+        <section id="page-all" class="page">
+          <div class="section-head">
+            <div class="dot-pattern" aria-hidden="true">
+              <span style="--x: 1%; --y: 12%"></span><span style="--x: 3%; --y: 48%"></span><span style="--x: 6%; --y: 22%"></span><span style="--x: 8%; --y: 70%"></span><span style="--x: 10%; --y: 34%"></span><span style="--x: 12%; --y: 82%"></span><span style="--x: 14%; --y: 16%"></span><span style="--x: 16%; --y: 58%"></span><span style="--x: 18%; --y: 40%"></span><span style="--x: 20%; --y: 76%"></span>
+              <span style="--x: 22%; --y: 10%"></span><span style="--x: 24%; --y: 52%"></span><span style="--x: 26%; --y: 28%"></span><span style="--x: 28%; --y: 66%"></span><span style="--x: 30%; --y: 18%"></span><span style="--x: 32%; --y: 60%"></span><span style="--x: 34%; --y: 36%"></span><span style="--x: 36%; --y: 84%"></span><span style="--x: 38%; --y: 14%"></span><span style="--x: 40%; --y: 56%"></span>
+              <span style="--x: 42%; --y: 30%"></span><span style="--x: 44%; --y: 72%"></span><span style="--x: 46%; --y: 20%"></span><span style="--x: 48%; --y: 62%"></span><span style="--x: 50%; --y: 42%"></span><span style="--x: 52%; --y: 88%"></span><span style="--x: 54%; --y: 12%"></span><span style="--x: 56%; --y: 50%"></span><span style="--x: 58%; --y: 26%"></span><span style="--x: 60%; --y: 68%"></span>
+              <span style="--x: 62%; --y: 8%"></span><span style="--x: 64%; --y: 54%"></span><span style="--x: 66%; --y: 32%"></span><span style="--x: 68%; --y: 74%"></span><span style="--x: 70%; --y: 18%"></span><span style="--x: 72%; --y: 58%"></span><span style="--x: 74%; --y: 44%"></span><span style="--x: 76%; --y: 82%"></span><span style="--x: 78%; --y: 24%"></span><span style="--x: 80%; --y: 64%"></span>
+              <span style="--x: 82%; --y: 14%"></span><span style="--x: 84%; --y: 52%"></span><span style="--x: 86%; --y: 36%"></span><span style="--x: 88%; --y: 70%"></span><span style="--x: 90%; --y: 10%"></span><span style="--x: 92%; --y: 48%"></span><span style="--x: 94%; --y: 28%"></span><span style="--x: 95.5%; --y: 62%"></span><span style="--x: 96.8%; --y: 16%"></span><span style="--x: 97.8%; --y: 78%"></span>
+              <span style="--x: 2%; --y: 86%"></span><span style="--x: 7%; --y: 6%"></span><span style="--x: 13%; --y: 90%"></span><span style="--x: 19%; --y: 26%"></span><span style="--x: 27%; --y: 80%"></span><span style="--x: 35%; --y: 46%"></span><span style="--x: 47%; --y: 6%"></span><span style="--x: 59%; --y: 90%"></span><span style="--x: 73%; --y: 6%"></span><span style="--x: 91%; --y: 86%"></span>
+              <span style="--x: 0%; --y: 0%"></span><span style="--x: 100%; --y: 0%"></span><span style="--x: 0%; --y: 100%"></span><span style="--x: 100%; --y: 100%"></span><span style="--x: 50%; --y: 0%"></span><span style="--x: 50%; --y: 100%"></span><span style="--x: 25%; --y: 100%"></span><span style="--x: 75%; --y: 100%"></span><span style="--x: 6%; --y: 98%"></span><span style="--x: 94%; --y: 98%"></span><span style="--x: 33%; --y: 2%"></span><span style="--x: 67%; --y: 2%"></span>
+              <span style="--x: 11%; --y: 100%"></span><span style="--x: 21%; --y: 0%"></span><span style="--x: 41%; --y: 100%"></span><span style="--x: 61%; --y: 0%"></span><span style="--x: 81%; --y: 100%"></span><span style="--x: 98.8%; --y: 50%"></span>
+              <span style="--x: 5%; --y: 32%"></span><span style="--x: 15%; --y: 66%"></span><span style="--x: 29%; --y: 48%"></span><span style="--x: 43%; --y: 78%"></span><span style="--x: 57%; --y: 16%"></span><span style="--x: 71%; --y: 54%"></span><span style="--x: 85%; --y: 30%"></span><span style="--x: 96%; --y: 44%"></span>
+            </div>
+            <h1>All Habits</h1>
+          </div>
+          <div class="section-dots" aria-hidden="true">&#183; &#183; &#183;</div>
+          <div id="all-list" class="stack"></div>
+        </section>
+
+        <section id="page-add" class="page">
+          <div class="section-head">
+            <div class="dot-pattern" aria-hidden="true">
+              <span style="--x: 1%; --y: 12%"></span><span style="--x: 3%; --y: 48%"></span><span style="--x: 6%; --y: 22%"></span><span style="--x: 8%; --y: 70%"></span><span style="--x: 10%; --y: 34%"></span><span style="--x: 12%; --y: 82%"></span><span style="--x: 14%; --y: 16%"></span><span style="--x: 16%; --y: 58%"></span><span style="--x: 18%; --y: 40%"></span><span style="--x: 20%; --y: 76%"></span>
+              <span style="--x: 22%; --y: 10%"></span><span style="--x: 24%; --y: 52%"></span><span style="--x: 26%; --y: 28%"></span><span style="--x: 28%; --y: 66%"></span><span style="--x: 30%; --y: 18%"></span><span style="--x: 32%; --y: 60%"></span><span style="--x: 34%; --y: 36%"></span><span style="--x: 36%; --y: 84%"></span><span style="--x: 38%; --y: 14%"></span><span style="--x: 40%; --y: 56%"></span>
+              <span style="--x: 42%; --y: 30%"></span><span style="--x: 44%; --y: 72%"></span><span style="--x: 46%; --y: 20%"></span><span style="--x: 48%; --y: 62%"></span><span style="--x: 50%; --y: 42%"></span><span style="--x: 52%; --y: 88%"></span><span style="--x: 54%; --y: 12%"></span><span style="--x: 56%; --y: 50%"></span><span style="--x: 58%; --y: 26%"></span><span style="--x: 60%; --y: 68%"></span>
+              <span style="--x: 62%; --y: 8%"></span><span style="--x: 64%; --y: 54%"></span><span style="--x: 66%; --y: 32%"></span><span style="--x: 68%; --y: 74%"></span><span style="--x: 70%; --y: 18%"></span><span style="--x: 72%; --y: 58%"></span><span style="--x: 74%; --y: 44%"></span><span style="--x: 76%; --y: 82%"></span><span style="--x: 78%; --y: 24%"></span><span style="--x: 80%; --y: 64%"></span>
+              <span style="--x: 82%; --y: 14%"></span><span style="--x: 84%; --y: 52%"></span><span style="--x: 86%; --y: 36%"></span><span style="--x: 88%; --y: 70%"></span><span style="--x: 90%; --y: 10%"></span><span style="--x: 92%; --y: 48%"></span><span style="--x: 94%; --y: 28%"></span><span style="--x: 95.5%; --y: 62%"></span><span style="--x: 96.8%; --y: 16%"></span><span style="--x: 97.8%; --y: 78%"></span>
+              <span style="--x: 2%; --y: 86%"></span><span style="--x: 7%; --y: 6%"></span><span style="--x: 13%; --y: 90%"></span><span style="--x: 19%; --y: 26%"></span><span style="--x: 27%; --y: 80%"></span><span style="--x: 35%; --y: 46%"></span><span style="--x: 47%; --y: 6%"></span><span style="--x: 59%; --y: 90%"></span><span style="--x: 73%; --y: 6%"></span><span style="--x: 91%; --y: 86%"></span>
+              <span style="--x: 0%; --y: 0%"></span><span style="--x: 100%; --y: 0%"></span><span style="--x: 0%; --y: 100%"></span><span style="--x: 100%; --y: 100%"></span><span style="--x: 50%; --y: 0%"></span><span style="--x: 50%; --y: 100%"></span><span style="--x: 25%; --y: 100%"></span><span style="--x: 75%; --y: 100%"></span><span style="--x: 6%; --y: 98%"></span><span style="--x: 94%; --y: 98%"></span><span style="--x: 33%; --y: 2%"></span><span style="--x: 67%; --y: 2%"></span>
+              <span style="--x: 11%; --y: 100%"></span><span style="--x: 21%; --y: 0%"></span><span style="--x: 41%; --y: 100%"></span><span style="--x: 61%; --y: 0%"></span><span style="--x: 81%; --y: 100%"></span><span style="--x: 98.8%; --y: 50%"></span>
+              <span style="--x: 5%; --y: 32%"></span><span style="--x: 15%; --y: 66%"></span><span style="--x: 29%; --y: 48%"></span><span style="--x: 43%; --y: 78%"></span><span style="--x: 57%; --y: 16%"></span><span style="--x: 71%; --y: 54%"></span><span style="--x: 85%; --y: 30%"></span><span style="--x: 96%; --y: 44%"></span>
+            </div>
+            <h1>Build a New Habit</h1>
+            <p class="subhead">Identity-based habits start here.</p>
+          </div>
+          <div class="section-dots" aria-hidden="true">&#183; &#183; &#183;</div>
+
+          <form id="habit-form" class="form-grid">
+            <label for="name">Habit name</label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              placeholder="e.g. meditate, read, exercise"
+              required
+            />
+
+            <label for="time">Time</label>
+            <div class="time-row">
+              <input
+                id="time"
+                name="time"
+                type="text"
+                placeholder="10:00"
+                inputmode="numeric"
+                pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]$"
+                title="Use format HH:MM (example: 10:00)"
+                required
+              />
+              <select id="period" name="period" required>
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
+
+            <label for="location">Location</label>
+            <div class="location-row">
+              <input
+                id="location"
+                name="location"
+                type="text"
+                placeholder="e.g. bedroom, gym, kitchen"
+                required
+              />
+              <select id="preposition" name="preposition" required>
+                <option value="in">in</option>
+                <option value="on">on</option>
+                <option value="at">at</option>
+              </select>
+            </div>
+
+            <label for="frequency">Frequency</label>
+            <select id="frequency" name="frequency" required>
+              <option value="Daily">Daily</option>
+              <option value="Weekdays">Weekdays</option>
+              <option value="Weekends">Weekends</option>
+              <option value="Weekly">Weekly</option>
+              <option value="Custom">Custom</option>
+            </select>
+
+            <div id="custom-days" class="custom-days">
+              <p class="custom-days-title">Select days</p>
+              <div class="days-grid">
+                <label class="day-option"><input type="checkbox" value="Monday" /> Monday</label>
+                <label class="day-option"><input type="checkbox" value="Tuesday" /> Tuesday</label>
+                <label class="day-option"><input type="checkbox" value="Wednesday" /> Wednesday</label>
+                <label class="day-option"><input type="checkbox" value="Thursday" /> Thursday</label>
+                <label class="day-option"><input type="checkbox" value="Friday" /> Friday</label>
+                <label class="day-option"><input type="checkbox" value="Saturday" /> Saturday</label>
+                <label class="day-option"><input type="checkbox" value="Sunday" /> Sunday</label>
+              </div>
+            </div>
+
+            <div id="preview" class="preview pending">
+              <p id="preview-sentence">I will ...</p>
+            </div>
+
+            <button type="submit" class="add-btn">Add Habit</button>
+            <div id="success-msg" class="success-msg"></div>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <section id="login-screen" class="login-screen" aria-live="polite">
+      <div class="login-card">
+        <h1 class="login-title">Habit Tracker</h1>
+        <p class="login-tagline">Small steps. Big results.</p>
+        <a class="google-login-btn" href="http://localhost:8000/auth/login">Sign in with Google</a>
+      </div>
+    </section>
+
+    <div id="userModal" aria-hidden="true">
+      <div class="user-modal-box" role="dialog" aria-modal="true" aria-labelledby="user-modal-title">
+        <h2 id="user-modal-title" class="user-modal-title">Before we begin</h2>
+        <p class="user-modal-subtitle">Enter your details to track your habits</p>
+        <div class="user-modal-form">
+          <input id="userNameInput" type="text" placeholder="Name" />
+          <input id="userEmailInput" type="email" placeholder="Email" />
+          <button id="saveUserBtn" type="button">Continue</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ============================================================
+      // Configuration and API constants
+      // ============================================================
+      const API_BASE_URL = "http://localhost:8000";
+      const WEEK_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const todayDate = new Date();
+      const todayDay = WEEK_DAYS[todayDate.getDay()];
+      const todayIsoDate = todayDate.toISOString().slice(0, 10);
+
+      // ============================================================
+      // WEBHOOK CONFIGURATION — CHANGE ONLY THIS LINE WHEN READY
+      // ============================================================
+      const WEBHOOK_URL = "https://node8n.frii.site/webhook-test/Habit-tracker3";
+
+      // ============================================================
+      // State and DOM references
+      // ============================================================
+      let token = localStorage.getItem("token") || "";
+      let habits = [];
+      let completions = {};
+
+      const pages = {
+        today: document.getElementById("page-today"),
+        all: document.getElementById("page-all"),
+        add: document.getElementById("page-add")
+      };
+
+      const navLinks = Array.from(document.querySelectorAll(".nav-link"));
+      const syncIndicator = document.getElementById("sync-indicator");
+      const flashMessageEl = document.getElementById("flash-message");
+      const todayDateEl = document.getElementById("today-date");
+      const todayListEl = document.getElementById("today-list");
+      const allListEl = document.getElementById("all-list");
+      const form = document.getElementById("habit-form");
+      const nameInput = document.getElementById("name");
+      const timeInput = document.getElementById("time");
+      const periodInput = document.getElementById("period");
+      const locationInput = document.getElementById("location");
+      const prepositionInput = document.getElementById("preposition");
+      const frequencyInput = document.getElementById("frequency");
+      const customDaysGroup = document.getElementById("custom-days");
+      const customDayInputs = Array.from(customDaysGroup.querySelectorAll('input[type="checkbox"]'));
+      const previewEl = document.getElementById("preview");
+      const previewSentenceEl = document.getElementById("preview-sentence");
+      const successMsgEl = document.getElementById("success-msg");
+      const userModal = document.getElementById("userModal");
+      const userNameInput = document.getElementById("userNameInput");
+      const userEmailInput = document.getElementById("userEmailInput");
+      const saveUserBtn = document.getElementById("saveUserBtn");
+      const appRoot = document.querySelector(".app");
+      const loginScreen = document.getElementById("login-screen");
+      const logoutBtn = document.getElementById("logout-btn");
+      let pendingHabitSubmit = false;
+
+      // ============================================================
+      // Utility helpers
+      // ============================================================
+      function authHeaders() {
+        token = localStorage.getItem("token") || "";
+        return {
+          Authorization: `Bearer ${token}`
+        };
+      }
+
+      async function parseResponse(response) {
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || `Request failed with status ${response.status}`);
+        }
+
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          return response.json();
+        }
+
+        return response.text();
+      }
+
+      function normalizeHabit(habit) {
+        const legacyLocation = habit["place"];
+        return {
+          ...habit,
+          location: habit.location || legacyLocation || "",
+          preposition: habit.preposition || "in",
+          customDays: Array.isArray(habit.customDays) ? habit.customDays : []
+        };
+      }
+
+      function normalizeCompletions(data) {
+        if (Array.isArray(data)) {
+          return data.reduce((acc, item) => {
+            const habitId = item.habit_id ?? item.habitId ?? item.id;
+            if (habitId !== undefined && habitId !== null) {
+              acc[String(habitId)] = item.completed !== false;
+            }
+            return acc;
+          }, {});
+        }
+
+        if (data && typeof data === "object") {
+          if (Array.isArray(data.completions)) {
+            return normalizeCompletions(data.completions);
+          }
+
+          return Object.keys(data).reduce((acc, key) => {
+            acc[String(key)] = Boolean(data[key]);
+            return acc;
+          }, {});
+        }
+
+        return {};
+      }
+
+      function setLoadingState(message) {
+        showSyncStatus(message || "");
+      }
+
+      async function loadHabits() {
+        const response = await fetch(`${API_BASE_URL}/habits`, {
+          method: "GET",
+          headers: authHeaders()
+        });
+
+        const data = await parseResponse(response);
+          habits = (data.habits || []).map(normalizeHabit);
+      }
+
+      async function addHabit(habitData) {
+        const response = await fetch(`${API_BASE_URL}/habits`, {
+          method: "POST",
+          headers: {
+            ...authHeaders(),
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(habitData)
+        });
+
+        return parseResponse(response);
+      }
+
+      async function deleteHabit(id) {
+        const response = await fetch(`${API_BASE_URL}/habits/${id}`, {
+          method: "DELETE",
+          headers: authHeaders()
+        });
+
+        return parseResponse(response);
+      }
+
+      async function loadCompletions() {
+        const response = await fetch(`${API_BASE_URL}/completions/${todayIsoDate}`, {
+          method: "GET",
+          headers: authHeaders()
+        });
+
+        const data = await parseResponse(response);
+        completions = normalizeCompletions(data);
+      }
+
+      async function saveCompletion(habitId, completed) {
+        const response = await fetch(`${API_BASE_URL}/completions`, {
+          method: "POST",
+          headers: {
+            ...authHeaders(),
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            habit_id: habitId,
+            date: todayIsoDate,
+            completed
+          })
+        });
+
+        return parseResponse(response);
+      }
+
+      function showLoginScreen() {
+        appRoot.style.display = "none";
+        loginScreen.style.display = "flex";
+      }
+
+      function showAppScreen() {
+        loginScreen.style.display = "none";
+        appRoot.style.display = "block";
+      }
+
+      function saveTokenFromUrlIfPresent() {
+        const currentUrl = new URL(window.location.href);
+        const tokenFromQuery = currentUrl.searchParams.get("token");
+
+        if (!tokenFromQuery) {
+          return false;
+        }
+
+        localStorage.setItem("token", tokenFromQuery);
+        currentUrl.searchParams.delete("token");
+        window.location.replace(currentUrl.toString());
+        return true;
+      }
+
+      function isAuthenticated() {
+        return Boolean(localStorage.getItem("token"));
+      }
+
+      function formatTodayHeading(date) {
+        const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(date);
+        const day = new Intl.DateTimeFormat("en-US", { day: "numeric" }).format(date);
+        const month = new Intl.DateTimeFormat("en-US", { month: "long" }).format(date);
+        return `${weekday}, ${day} ${month}`;
+      }
+
+      function formatTime(value) {
+        if (!value) {
+          return "--:--";
+        }
+
+        const trimmed = String(value).trim();
+
+        if (/^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i.test(trimmed)) {
+          return trimmed.toUpperCase().replace(/\s+/, " ");
+        }
+
+        const twentyFourHourMatch = trimmed.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+        if (twentyFourHourMatch) {
+          const [h, m] = trimmed.split(":");
+          const d = new Date();
+          d.setHours(Number(h), Number(m), 0, 0);
+          return d.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+          });
+        }
+
+        return trimmed;
+      }
+
+      function combineTime(timeValue, periodValue) {
+        const normalizedTime = timeValue.trim();
+        const normalizedPeriod = periodValue.trim().toUpperCase();
+        return `${normalizedTime} ${normalizedPeriod}`;
+      }
+
+      function habitSentence(habit) {
+        const preposition = habit.preposition || "in";
+        const location = habit.location || "";
+        return `I will ${habit.name} at ${formatTime(habit.time)} ${preposition} ${location}`;
+      }
+
+      function showSyncStatus(message, type) {
+        syncIndicator.textContent = message;
+        syncIndicator.className = "sync-indicator";
+        if (type) {
+          syncIndicator.classList.add(type);
+        }
+      }
+
+      function showFlashMessage(message, type) {
+        flashMessageEl.textContent = message;
+        flashMessageEl.className = "flash-message";
+        if (type) {
+          flashMessageEl.classList.add(type);
+        }
+
+        if (message) {
+          window.setTimeout(() => {
+            flashMessageEl.textContent = "";
+            flashMessageEl.className = "flash-message";
+          }, 2500);
+        }
+      }
+
+      function shouldShowToday(habit) {
+        if (habit.frequency === "Daily") {
+          return true;
+        }
+
+        if (habit.frequency === "Weekdays") {
+          return todayDate.getDay() >= 1 && todayDate.getDay() <= 5;
+        }
+
+        if (habit.frequency === "Weekends") {
+          return todayDate.getDay() === 0 || todayDate.getDay() === 6;
+        }
+
+        if (habit.frequency === "Weekly") {
+          return habit.createdDay === todayDay;
+        }
+
+        if (habit.frequency === "Custom") {
+          return Array.isArray(habit.customDays) && habit.customDays.includes(todayDay);
+        }
+
+        return false;
+      }
+
+      function getSelectedCustomDays() {
+        return customDayInputs.filter((input) => input.checked).map((input) => input.value);
+      }
+
+      function toggleCustomDaysVisibility() {
+        const isCustom = frequencyInput.value === "Custom";
+        customDaysGroup.classList.toggle("active", isCustom);
+      }
+
+      function openUserModal() {
+        userModal.style.display = "flex";
+        userModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("modal-open");
+      }
+
+      function closeUserModal() {
+        userModal.style.display = "none";
+        userModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("modal-open");
+      }
+
+      async function continueHabitSubmission() {
+        const selectedCustomDays = getSelectedCustomDays();
+
+        if (frequencyInput.value === "Custom" && !selectedCustomDays.length) {
+          showFlashMessage("Select at least one custom day.", "error");
+          return;
+        }
+
+        const newHabit = {
+          name: nameInput.value.trim(),
+          time: combineTime(timeInput.value, periodInput.value),
+          location: locationInput.value.trim(),
+          preposition: prepositionInput.value,
+          frequency: frequencyInput.value,
+          createdDay: todayDay,
+          customDays: frequencyInput.value === "Custom" ? selectedCustomDays : []
+        };
+
+        try {
+          setLoadingState("Adding habit...");
+          await addHabit(newHabit);
+          await Promise.all([loadHabits(), loadCompletions()]);
+          renderTodayPage();
+          renderAllHabitsPage();
+        } catch (error) {
+          console.error("Add habit failed:", error);
+          showFlashMessage("Failed to add habit.", "error");
+          return;
+        } finally {
+          setLoadingState("");
+        }
+
+        await syncWebhook({
+          action: "add",
+          name: newHabit.name,
+          time: newHabit.time,
+          location: newHabit.location,
+          preposition: newHabit.preposition,
+          frequency: newHabit.frequency,
+          createdDay: newHabit.createdDay,
+          customDays: newHabit.customDays
+        });
+
+        successMsgEl.textContent = "Habit added. Stay consistent.";
+        form.reset();
+        periodInput.value = "AM";
+        prepositionInput.value = "in";
+        customDayInputs.forEach((input) => {
+          input.checked = false;
+        });
+        toggleCustomDaysVisibility();
+        updatePreview();
+        showPage("today");
+        showFlashMessage("Habit added. Stay consistent.", "success");
+      }
+
+      async function handleAddHabit(event) {
+        event.preventDefault();
+        await continueHabitSubmission();
+      }
+
+      async function saveUserAndContinue() {
+        const name = userNameInput.value.trim();
+        const email = userEmailInput.value.trim();
+
+        if (!name || !email) {
+          showFlashMessage("Please enter name and email.", "error");
+          return;
+        }
+
+        if (!email.includes("@")) {
+          showFlashMessage("Please enter a valid email address.", "error");
+          return;
+        }
+
+        closeUserModal();
+
+        if (pendingHabitSubmit) {
+          pendingHabitSubmit = false;
+          await continueHabitSubmission();
+        }
+      }
+
+      // ============================================================
+      // Webhook sync
+      // ============================================================
+      async function syncWebhook(payload) {
+        showSyncStatus("Syncing...");
+
+        try {
+          const response = await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+
+          let data = null;
+          try {
+            data = await response.json();
+          } catch (parseError) {
+            data = await response.text();
+          }
+
+          console.log("Webhook response:", data);
+          showSyncStatus("Synced ✓", "success");
+        } catch (error) {
+          console.log("Webhook error:", error);
+          showSyncStatus("Sync failed (saved locally)", "error");
+        }
+      }
+
+      // ============================================================
+      // Rendering functions
+      // ============================================================
+      function renderTodayPage() {
+        todayDateEl.textContent = formatTodayHeading(todayDate);
+        const filtered = habits.filter(shouldShowToday);
+        todayListEl.innerHTML = "";
+
+        if (!filtered.length) {
+          todayListEl.innerHTML = `
+            <div class="quote">
+              <strong>"You do not rise to the level of your goals. You fall to the level of your systems."</strong>
+              <p>Start one small habit today.</p>
+            </div>
+          `;
+          return;
+        }
+
+        filtered.forEach((habit) => {
+          const card = document.createElement("article");
+          card.className = "habit-card";
+
+          const checked = Boolean(completions[String(habit.id)]);
+          if (checked) {
+            card.classList.add("done");
+          }
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = checked;
+
+          checkbox.addEventListener("change", async () => {
+            try {
+              setLoadingState("Saving completion...");
+              completions[String(habit.id)] = checkbox.checked;
+              await saveCompletion(habit.id, checkbox.checked);
+              await loadCompletions();
+              renderTodayPage();
+            } catch (error) {
+              console.error("Save completion failed:", error);
+              showFlashMessage("Failed to save completion.", "error");
+              checkbox.checked = !checkbox.checked;
+              completions[String(habit.id)] = checkbox.checked;
+              renderTodayPage();
+            } finally {
+              setLoadingState("");
+            }
+          });
+
+          const sentence = document.createElement("p");
+          sentence.className = "sentence";
+          sentence.textContent = habitSentence(habit);
+
+          card.append(checkbox, sentence);
+          todayListEl.appendChild(card);
+        });
+      }
+
+      function renderAllHabitsPage() {
+        allListEl.innerHTML = "";
+
+        if (!habits.length) {
+          allListEl.innerHTML = '<div class="empty-message">No habits yet. Start building.</div>';
+          return;
+        }
+
+        habits.forEach((habit) => {
+          const card = document.createElement("article");
+          card.className = "all-card";
+
+          const top = document.createElement("div");
+          top.className = "row-between";
+
+          const sentence = document.createElement("p");
+          sentence.className = "sentence";
+          sentence.textContent = habitSentence(habit);
+
+          const delBtn = document.createElement("button");
+          delBtn.className = "delete-btn";
+          delBtn.type = "button";
+          delBtn.setAttribute("aria-label", `Delete ${habit.name}`);
+          delBtn.innerHTML = "&#128465;";
+
+          delBtn.addEventListener("click", async () => {
+            try {
+              setLoadingState("Deleting habit...");
+              await deleteHabit(habit.id);
+              await Promise.all([loadHabits(), loadCompletions()]);
+              renderTodayPage();
+              renderAllHabitsPage();
+            } catch (error) {
+              console.error("Delete habit failed:", error);
+              showFlashMessage("Failed to delete habit.", "error");
+              return;
+            } finally {
+              setLoadingState("");
+            }
+
+            await syncWebhook({
+              action: "delete",
+              id: habit.id,
+              name: habit.name,
+              time: habit.time,
+              location: habit.location,
+              preposition: habit.preposition,
+              frequency: habit.frequency,
+              createdDay: habit.createdDay
+            });
+          });
+
+          top.append(sentence, delBtn);
+
+          const badge = document.createElement("span");
+          badge.className = "badge";
+          badge.textContent = habit.frequency;
+
+          card.append(top, badge);
+          allListEl.appendChild(card);
+        });
+      }
+
+      function updatePreview() {
+        const draft = {
+          name: nameInput.value.trim(),
+          time: combineTime(timeInput.value, periodInput.value),
+          location: locationInput.value.trim(),
+          preposition: prepositionInput.value
+        };
+
+        const hasValidTime = /^(0?[1-9]|1[0-2]):[0-5][0-9]$/.test(timeInput.value.trim());
+        const filled = draft.name && hasValidTime && draft.location;
+        previewSentenceEl.textContent = filled
+          ? `I will ${draft.name} at ${formatTime(draft.time)} ${draft.preposition} ${draft.location}`
+          : "I will [name] at [time] in [location]";
+        previewEl.classList.toggle("pending", !filled);
+      }
+
+      // ============================================================
+      // Navigation and event handlers
+      // ============================================================
+      function showPage(pageKey) {
+        Object.entries(pages).forEach(([key, el]) => {
+          el.classList.toggle("active", key === pageKey);
+        });
+
+        navLinks.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.page === pageKey);
+        });
+      }
+
+      navLinks.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          showPage(btn.dataset.page);
+        });
+      });
+
+      [nameInput, timeInput, periodInput, locationInput, prepositionInput, frequencyInput].forEach((input) => {
+        input.addEventListener("input", updatePreview);
+      });
+
+      periodInput.addEventListener("change", updatePreview);
+      frequencyInput.addEventListener("change", () => {
+        toggleCustomDaysVisibility();
+        updatePreview();
+      });
+
+      customDayInputs.forEach((input) => {
+        input.addEventListener("change", updatePreview);
+      });
+
+      form.addEventListener("submit", handleAddHabit);
+
+      saveUserBtn.addEventListener("click", saveUserAndContinue);
+
+      userModal.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+
+      logoutBtn.addEventListener("click", () => {
+        localStorage.removeItem("token");
+        window.location.reload();
+      });
+
+      // ============================================================
+      // Initial bootstrap
+      // ============================================================
+      const hasTokenInUrl = saveTokenFromUrlIfPresent();
+
+      if (!hasTokenInUrl) {
+        if (!isAuthenticated()) {
+          showLoginScreen();
+        } else {
+          showAppScreen();
+          toggleCustomDaysVisibility();
+          updatePreview();
+          todayListEl.innerHTML = '<div class="empty-message">Loading habits...</div>';
+          allListEl.innerHTML = '<div class="empty-message">Loading habits...</div>';
+
+          (async () => {
+            try {
+              setLoadingState("Loading habits...");
+              await Promise.all([loadHabits(), loadCompletions()]);
+              renderTodayPage();
+              renderAllHabitsPage();
+            } catch (error) {
+              console.error("Initial load failed:", error);
+              showFlashMessage("Failed to load habits from server.", "error");
+              todayListEl.innerHTML = '<div class="empty-message">Could not load habits.</div>';
+              allListEl.innerHTML = '<div class="empty-message">Could not load habits.</div>';
+            } finally {
+              setLoadingState("");
+            }
+          })();
+        }
+      }
+    </script>
+  </body>
+</html>

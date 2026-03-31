@@ -1,0 +1,35 @@
+# Python virtual env
+venv
+.venv
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Test cache
+.pytest_cache
+.coverage
+
+# Env files
+.env
+.env.*
+
+# Local database
+habit_tracker.db
+
+# Git
+.git
+.gitignore
+
+# Editor junk
+.vscode
+.idea
+*.swp
+
+# OS junk
+.DS_Store
+
+# Logs
+*.log

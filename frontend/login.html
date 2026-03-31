@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Habit Tracker Login</title>
+		<style>
+			:root {
+				--bg: #f5f0e8;
+				--text: #1c1c1c;
+				--accent: #c8963e;
+				--card: #ffffff;
+				--sidebar: #1c1c1c;
+				--sidebar-text: #f5f0e8;
+				--border: #e7ddce;
+				--ok-text: #c7efd8;
+				--danger: #ffb4a8;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				min-height: 100vh;
+				background: radial-gradient(circle at 20% 10%, #2b2b2b 0%, transparent 40%),
+					radial-gradient(circle at 85% 80%, #29211a 0%, transparent 30%), var(--sidebar);
+				color: var(--sidebar-text);
+				font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+				display: grid;
+				place-items: center;
+				padding: 1.25rem;
+			}
+
+			.login-shell {
+				width: min(460px, 100%);
+			}
+
+			.login-card {
+				background: rgba(255, 255, 255, 0.04);
+				border: 1px solid rgba(245, 240, 232, 0.14);
+				border-radius: 16px;
+				box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+				padding: clamp(1.15rem, 2.5vw, 1.85rem);
+				backdrop-filter: blur(4px);
+			}
+
+			.section-head {
+				margin-bottom: 1rem;
+			}
+
+			.dot-pattern {
+				position: relative;
+				width: 100%;
+				height: 54px;
+				margin-bottom: 10px;
+				overflow: hidden;
+			}
+
+			.dot-pattern span {
+				position: absolute;
+				left: var(--x);
+				top: var(--y);
+				width: 3px;
+				height: 3px;
+				border-radius: 50%;
+				background-color: rgba(165, 165, 165, 0.42);
+			}
+
+			.dot-pattern span:nth-child(5n) {
+				width: 2px;
+				height: 2px;
+			}
+
+			.title {
+				margin: 0;
+				font-family: Georgia, "Times New Roman", serif;
+				font-size: clamp(2rem, 4.4vw, 2.55rem);
+				letter-spacing: 0.02em;
+			}
+
+			.subtitle {
+				margin: 0.45rem 0 0;
+				color: #ded3c1;
+			}
+
+			form {
+				display: grid;
+				gap: 0.85rem;
+			}
+
+			label {
+				color: #e7dbca;
+				font-size: 0.95rem;
+			}
+
+			input {
+				width: 100%;
+				border-radius: 10px;
+				border: 1px solid rgba(245, 240, 232, 0.24);
+				background: rgba(255, 255, 255, 0.07);
+				color: var(--sidebar-text);
+				padding: 0.78rem 0.88rem;
+				font: inherit;
+			}
+
+			input::placeholder {
+				color: rgba(245, 240, 232, 0.48);
+			}
+
+			input:focus-visible {
+				outline: 2px solid rgba(200, 150, 62, 0.7);
+				outline-offset: 1px;
+			}
+
+			.login-btn {
+				margin-top: 0.35rem;
+				border: 0;
+				border-radius: 10px;
+				padding: 0.8rem 1rem;
+				font: inherit;
+				font-weight: 700;
+				color: #24190a;
+				background: var(--accent);
+				cursor: pointer;
+				transition: filter 140ms ease;
+			}
+
+			.login-btn:hover {
+				filter: brightness(0.95);
+			}
+
+			.feedback {
+				min-height: 1.2rem;
+				margin: 0;
+				font-size: 0.92rem;
+			}
+
+			.feedback.error {
+				color: var(--danger);
+			}
+
+			.feedback.success {
+				color: var(--ok-text);
+			}
+		</style>
+	</head>
+	<body>
+		<main class="login-shell">
+			<section class="login-card" aria-labelledby="login-title">
+				<div class="section-head">
+					<div class="dot-pattern" aria-hidden="true">
+						<span style="--x: 1%; --y: 8%"></span><span style="--x: 4%; --y: 42%"></span><span style="--x: 7%; --y: 16%"></span><span style="--x: 10%; --y: 74%"></span><span style="--x: 13%; --y: 28%"></span><span style="--x: 16%; --y: 82%"></span>
+						<span style="--x: 19%; --y: 12%"></span><span style="--x: 22%; --y: 50%"></span><span style="--x: 25%; --y: 24%"></span><span style="--x: 28%; --y: 70%"></span><span style="--x: 31%; --y: 10%"></span><span style="--x: 34%; --y: 54%"></span>
+						<span style="--x: 37%; --y: 20%"></span><span style="--x: 40%; --y: 78%"></span><span style="--x: 43%; --y: 14%"></span><span style="--x: 46%; --y: 46%"></span><span style="--x: 49%; --y: 30%"></span><span style="--x: 52%; --y: 86%"></span>
+						<span style="--x: 55%; --y: 9%"></span><span style="--x: 58%; --y: 62%"></span><span style="--x: 61%; --y: 22%"></span><span style="--x: 64%; --y: 74%"></span><span style="--x: 67%; --y: 18%"></span><span style="--x: 70%; --y: 58%"></span>
+						<span style="--x: 73%; --y: 12%"></span><span style="--x: 76%; --y: 66%"></span><span style="--x: 79%; --y: 28%"></span><span style="--x: 82%; --y: 84%"></span><span style="--x: 85%; --y: 14%"></span><span style="--x: 88%; --y: 50%"></span>
+						<span style="--x: 91%; --y: 20%"></span><span style="--x: 93%; --y: 72%"></span><span style="--x: 95%; --y: 34%"></span><span style="--x: 97%; --y: 88%"></span><span style="--x: 98.5%; --y: 6%"></span><span style="--x: 99.2%; --y: 58%"></span>
+					</div>
+					<h1 id="login-title" class="title">Habit Tracker</h1>
+					<p class="subtitle">Get started with your habits</p>
+				</div>
+
+				<form id="login-form" novalidate>
+					<label for="name">Name</label>
+					<input id="name" name="name" type="text" placeholder="Your name" required />
+
+					<label for="email">Email</label>
+					<input id="email" name="email" type="email" placeholder="you@example.com" required />
+
+					<button type="submit" class="login-btn">Continue</button>
+					<p id="feedback" class="feedback" aria-live="polite"></p>
+				</form>
+			</section>
+		</main>
+
+		<script>
+			const form = document.getElementById("login-form");
+			const nameInput = document.getElementById("name");
+			const emailInput = document.getElementById("email");
+			const feedback = document.getElementById("feedback");
+
+			function showFeedback(message, type) {
+				feedback.textContent = message;
+				feedback.className = "feedback";
+				if (type) {
+					feedback.classList.add(type);
+				}
+			}
+
+			function isValidEmail(email) {
+				return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+			}
+
+			form.addEventListener("submit", (event) => {
+				event.preventDefault();
+
+				const name = nameInput.value.trim();
+				const email = emailInput.value.trim();
+
+				if (!name || !email) {
+					showFeedback("Please enter both name and email.", "error");
+					return;
+				}
+
+				if (!isValidEmail(email)) {
+					showFeedback("Please enter a valid email address.", "error");
+					return;
+				}
+
+				localStorage.setItem("habit_tracker_name", name);
+				localStorage.setItem("habit_tracker_email", email);
+				localStorage.setItem("habit_tracker_user", JSON.stringify({ name, email }));
+
+				showFeedback("Welcome back. Redirecting...", "success");
+				window.location.href = "index.html";
+			});
+		</script>
+	</body>
+</html>
