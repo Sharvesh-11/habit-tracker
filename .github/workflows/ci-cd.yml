@@ -14,6 +14,21 @@ jobs:
       - name: code-checkout
         uses: actions/checkout@v4
 
+      
+      - name: debug docker secrets (temporary)
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "DOCKER_USERNAME is EMPTY";
+          else
+            echo "DOCKER_USERNAME is SET";
+          fi
+
+          if [ -z "${{ secrets.DOCKER_TOKEN }}" ]; then
+            echo "DOCKER_TOKEN is EMPTY";
+          else
+            echo "DOCKER_TOKEN is SET";
+          fi       
+
       - name: setup python version
         uses: actions/setup-python@v5
         with:
