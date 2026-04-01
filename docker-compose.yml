@@ -23,4 +23,4 @@ services:
       API_BASE_URL: ${API_BASE_URL}
     ports:
       # host:container (container listens on 5500)
-      - "5500:5500"
+      - "5500:80"
