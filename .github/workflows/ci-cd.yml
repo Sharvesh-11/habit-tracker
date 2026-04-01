@@ -14,7 +14,6 @@ jobs:
       - name: code-checkout
         uses: actions/checkout@v4
 
-      
       - name: debug docker secrets (temporary)
         run: |
           if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
@@ -22,12 +21,11 @@ jobs:
           else
             echo "DOCKER_USERNAME is SET";
           fi
-
           if [ -z "${{ secrets.DOCKER_TOKEN }}" ]; then
             echo "DOCKER_TOKEN is EMPTY";
           else
-            echo "DOCKER_TOKEN is SET";
-          fi       
+            echo "DOCKER_TOKEN IS SET";
+          fi
 
       - name: setup python version
         uses: actions/setup-python@v5
@@ -89,14 +87,14 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-              cd /var/www/app/habit-tracker || exit 1
-              git pull origin main
-              export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-              export GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-              export GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
- 	      export SECRET_KEY=${{ secrets.SECRET_KEY }}
-	      export FRONTEND_URL=${{ secrets.FRONTEND_URL }}
-	      export API_BASE_URL=${{ secrets.API_BASE_URL }}
-	      docker compose pull
-	      docker compose up -d --force-recreate
-              docker image prune -f  
+            cd /var/www/app/habit-tracker || exit 1
+            git pull origin main
+            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            export GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            export GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            export SECRET_KEY=${{ secrets.SECRET_KEY }}
+            export FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            export API_BASE_URL=${{ secrets.API_BASE_URL }}
+            docker compose pull
+            docker compose up -d --force-recreate
+            docker image prune -f
