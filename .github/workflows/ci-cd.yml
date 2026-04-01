@@ -89,8 +89,14 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd ~/habit-tracker
-            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            docker compose pull
-            docker compose up -d --force-recreate
-            docker image prune -f
+              cd /var/www/app/habit-tracker || exit 1
+              git pull origin main
+              export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+              export GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+              export GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+ 	      export SECRET_KEY=${{ secrets.SECRET_KEY }}
+	      export FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+	      export API_BASE_URL=${{ secrets.API_BASE_URL }}
+	      docker compose pull
+	      docker compose up -d --force-recreate
+              docker image prune -f  
