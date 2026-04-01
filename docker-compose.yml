@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  backend:
+    image: ${DOCKER_USERNAME}/habit-tracker-backend:latest
+    container_name: habit-tracker-backend
+    restart: unless-stopped
+    environment:
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      SECRET_KEY: ${SECRET_KEY}
+      FRONTEND_URL: ${FRONTEND_URL}
+      API_BASE_URL: ${API_BASE_URL}
+    ports:
+      # host:container
+      - "8000:8000"
+
+  frontend:
+    image: ${DOCKER_USERNAME}/habit-tracker-frontend:latest
+    container_name: habit-tracker-frontend
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: ${API_BASE_URL}
+    ports:
+      # host:container (container listens on 5500)
+      - "5500:5500"
