@@ -40,6 +40,47 @@
         display: none;
       }
 
+      .menu-toggle {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        width: 44px;
+        height: 44px;
+        border: 0;
+        border-radius: 10px;
+        background: #1c1c1c;
+        color: #c8963e;
+        font-size: 1.55rem;
+        line-height: 1;
+        cursor: pointer;
+        z-index: 1400;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 18px rgba(84, 63, 32, 0.26);
+      }
+
+      .menu-toggle:hover {
+        filter: brightness(0.96);
+      }
+
+      .menu-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+        z-index: 1250;
+      }
+
+      .menu-overlay.active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
       .sidebar {
         position: fixed;
         left: 0;
@@ -48,11 +89,18 @@
         height: 100vh;
         background: var(--sidebar);
         color: var(--sidebar-text);
-        padding: 2rem 1.2rem;
+        padding: 4.2rem 1.2rem 2rem;
         box-shadow: 6px 0 20px rgba(0, 0, 0, 0.15);
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        z-index: 1300;
+        transform: translateX(-100%);
+        transition: transform 220ms ease;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
       }
 
       .brand {
@@ -145,9 +193,8 @@
       }
 
       .content {
-        margin-left: 260px;
         min-height: 100vh;
-        padding: 2.25rem;
+        padding: 4.75rem 2.25rem 2.25rem;
       }
 
       .sync-indicator {
@@ -279,6 +326,7 @@
         margin: 0;
         flex: 1;
         min-width: 0;
+        overflow-wrap: anywhere;
       }
 
       .quote,
@@ -374,8 +422,13 @@
 
       .time-row {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 130px;
+        grid-template-columns: minmax(0, 60%) minmax(0, 35%);
         gap: 0.7rem;
+      }
+
+      #period {
+        background: #fdf9f2;
+        color: #1c1c1c;
       }
 
       .location-row {
@@ -415,6 +468,7 @@
       .preview p {
         margin: 0;
         font-size: 1.5rem;
+        overflow-wrap: anywhere;
       }
 
       .preview.pending p {
@@ -437,6 +491,13 @@
       .success-msg {
         margin-top: 0.6rem;
         color: var(--ok-text);
+      }
+
+      .time-hint {
+        margin-top: -0.2rem;
+        font-size: 0.82rem;
+        color: var(--danger);
+        min-height: 1rem;
       }
 
       #userModal {
@@ -562,17 +623,39 @@
         filter: brightness(0.95);
       }
 
-      @media (max-width: 920px) {
-        .sidebar {
-          position: static;
-          width: 100%;
-          height: auto;
-          display: block;
+      @media (max-width: 1024px) {
+        .content {
+          padding: 4.4rem 1.5rem 1.5rem;
         }
 
+        .dot-pattern {
+          width: 100%;
+          height: 132px;
+          margin-bottom: 10px;
+        }
+
+        .brand {
+          --dot-size: 1.8px;
+          --dot-gap: 0.8px;
+          --letter-gap: 2px;
+          --line-gap: 4px;
+          --brand-scale: 1.12;
+          max-width: calc(100% / var(--brand-scale));
+          margin-bottom: 1.4rem;
+        }
+      }
+
+      @media (max-width: 768px) {
         .content {
-          margin-left: 0;
-          padding: 1rem;
+          padding: 4rem 1rem 1rem;
+        }
+
+        .habit-card {
+          align-items: flex-start;
+        }
+
+        .all-card .row-between {
+          align-items: flex-start;
         }
 
         .sentence {
@@ -595,12 +678,6 @@
           grid-template-columns: 1fr;
         }
 
-        .dot-pattern {
-          width: 100%;
-          height: 125px;
-          margin-bottom: 10px;
-        }
-
         .brand {
           --dot-size: 1.65px;
           --dot-gap: 0.8px;
@@ -615,10 +692,58 @@
           gap: var(--letter-gap);
         }
       }
+
+      @media (max-width: 480px) {
+        .content {
+          padding: 3.8rem 0.8rem 0.8rem;
+        }
+
+        .menu-toggle {
+          width: 40px;
+          height: 40px;
+          font-size: 1.4rem;
+        }
+
+        h1 {
+          font-size: 1.8rem;
+        }
+
+        .subhead,
+        .nav-link,
+        label,
+        .form-grid input,
+        .form-grid select,
+        .add-btn {
+          font-size: 0.95rem;
+        }
+
+        .sentence {
+          font-size: 0.98rem;
+        }
+
+        .preview p {
+          font-size: 1.05rem;
+        }
+
+        .habit-card,
+        .all-card,
+        .quote,
+        .empty-message,
+        .preview {
+          padding: 0.85rem;
+        }
+
+        .stack {
+          gap: 0.75rem;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="app">
+      <button type="button" id="menu-toggle" class="menu-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
+      <div id="menu-overlay" class="menu-overlay" aria-hidden="true"></div>
+
       <aside class="sidebar">
         <h2 class="brand" aria-label="Habit Tracker">
           <span class="brand-word" aria-hidden="true">
@@ -747,17 +872,16 @@
                 id="time"
                 name="time"
                 type="text"
-                placeholder="10:00"
+                placeholder="e.g. 1030"
                 inputmode="numeric"
-                pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]$"
-                title="Use format HH:MM (example: 10:00)"
                 required
               />
               <select id="period" name="period" required>
-                <option value="AM">AM</option>
+                <option value="AM" selected>AM</option>
                 <option value="PM">PM</option>
               </select>
             </div>
+            <p id="time-hint" class="time-hint"></p>
 
             <label for="location">Location</label>
             <div class="location-row">
@@ -857,6 +981,9 @@
       };
 
       const navLinks = Array.from(document.querySelectorAll(".nav-link"));
+      const menuToggleBtn = document.getElementById("menu-toggle");
+      const menuOverlay = document.getElementById("menu-overlay");
+      const sidebar = document.querySelector(".sidebar");
       const syncIndicator = document.getElementById("sync-indicator");
       const flashMessageEl = document.getElementById("flash-message");
       const todayDateEl = document.getElementById("today-date");
@@ -866,6 +993,7 @@
       const nameInput = document.getElementById("name");
       const timeInput = document.getElementById("time");
       const periodInput = document.getElementById("period");
+      const timeHintEl = document.getElementById("time-hint");
       const locationInput = document.getElementById("location");
       const prepositionInput = document.getElementById("preposition");
       const frequencyInput = document.getElementById("frequency");
@@ -882,6 +1010,7 @@
       const loginScreen = document.getElementById("login-screen");
       const logoutBtn = document.getElementById("logout-btn");
       let pendingHabitSubmit = false;
+      let timeRawDigits = "";
 
       // ============================================================
       // Utility helpers
@@ -1040,42 +1169,66 @@
         return `${weekday}, ${day} ${month}`;
       }
 
-      function formatTime(value) {
-        if (!value) {
-          return "--:--";
+      function formatRawTimeDigits(digits) {
+        const safeDigits = String(digits || "").replace(/\D/g, "").slice(0, 4);
+
+        if (safeDigits.length <= 2) {
+          return safeDigits;
         }
 
-        const trimmed = String(value).trim();
-
-        if (/^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i.test(trimmed)) {
-          return trimmed.toUpperCase().replace(/\s+/, " ");
-        }
-
-        const twentyFourHourMatch = trimmed.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
-        if (twentyFourHourMatch) {
-          const [h, m] = trimmed.split(":");
-          const d = new Date();
-          d.setHours(Number(h), Number(m), 0, 0);
-          return d.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true
-          });
-        }
-
-        return trimmed;
+        return `${safeDigits.slice(0, 2)}:${safeDigits.slice(2)}`;
       }
 
-      function combineTime(timeValue, periodValue) {
-        const normalizedTime = timeValue.trim();
-        const normalizedPeriod = periodValue.trim().toUpperCase();
-        return `${normalizedTime} ${normalizedPeriod}`;
+      function toStorageTime(digits) {
+        if (String(digits).length !== 4) {
+          return "";
+        }
+
+        return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+      }
+
+      function isValidTwelveHourTime(value) {
+        const match = String(value || "").match(/^(\d{2}):(\d{2})$/);
+        if (!match) {
+          return false;
+        }
+
+        const hours = Number(match[1]);
+        const minutes = Number(match[2]);
+        return hours >= 1 && hours <= 12 && minutes >= 0 && minutes <= 59;
+      }
+
+      function combinedDisplayTime() {
+        const base = toStorageTime(timeRawDigits);
+        if (!base) {
+          return "";
+        }
+
+        return `${base} ${periodInput.value}`;
+      }
+
+      function updateTimeHint() {
+        const normalized = toStorageTime(timeRawDigits);
+        const isPotentiallyComplete = timeRawDigits.length === 4;
+
+        if (!timeRawDigits) {
+          timeHintEl.textContent = "";
+          return true;
+        }
+
+        if (isPotentiallyComplete && !isValidTwelveHourTime(normalized)) {
+          timeHintEl.textContent = "Enter a valid time (01-12)";
+          return false;
+        }
+
+        timeHintEl.textContent = "";
+        return isPotentiallyComplete;
       }
 
       function habitSentence(habit) {
         const preposition = habit.preposition || "in";
         const location = habit.location || "";
-        return `I will ${habit.name} at ${formatTime(habit.time)} ${preposition} ${location}`;
+        return `I will ${habit.name} at ${habit.time || ""} ${preposition} ${location}`;
       }
 
       function showSyncStatus(message, type) {
@@ -1147,6 +1300,14 @@
       }
 
       async function continueHabitSubmission() {
+        const normalizedTime = toStorageTime(timeRawDigits);
+
+        if (!isValidTwelveHourTime(normalizedTime)) {
+          timeHintEl.textContent = "Enter a valid time (01-12)";
+          showFlashMessage("Please enter a valid time.", "error");
+          return;
+        }
+
         const selectedCustomDays = getSelectedCustomDays();
 
         if (frequencyInput.value === "Custom" && !selectedCustomDays.length) {
@@ -1156,7 +1317,7 @@
 
         const newHabit = {
           name: nameInput.value.trim(),
-          time: combineTime(timeInput.value, periodInput.value),
+          time: `${normalizedTime} ${periodInput.value}`,
           location: locationInput.value.trim(),
           preposition: prepositionInput.value,
           frequency: frequencyInput.value,
@@ -1191,11 +1352,14 @@
 
         successMsgEl.textContent = "Habit added. Stay consistent.";
         form.reset();
+        timeRawDigits = "";
+        timeInput.value = "";
         periodInput.value = "AM";
         prepositionInput.value = "in";
         customDayInputs.forEach((input) => {
           input.checked = false;
         });
+        timeHintEl.textContent = "";
         toggleCustomDaysVisibility();
         updatePreview();
         showPage("today");
@@ -1383,17 +1547,38 @@
       function updatePreview() {
         const draft = {
           name: nameInput.value.trim(),
-          time: combineTime(timeInput.value, periodInput.value),
+          time: combinedDisplayTime(),
           location: locationInput.value.trim(),
           preposition: prepositionInput.value
         };
 
-        const hasValidTime = /^(0?[1-9]|1[0-2]):[0-5][0-9]$/.test(timeInput.value.trim());
+        const hasValidTime = isValidTwelveHourTime(toStorageTime(timeRawDigits));
         const filled = draft.name && hasValidTime && draft.location;
         previewSentenceEl.textContent = filled
-          ? `I will ${draft.name} at ${formatTime(draft.time)} ${draft.preposition} ${draft.location}`
+          ? `I will ${draft.name} at ${draft.time} ${draft.preposition} ${draft.location}`
           : "I will [name] at [time] in [location]";
         previewEl.classList.toggle("pending", !filled);
+      }
+
+      function openSidebar() {
+        sidebar.classList.add("open");
+        menuOverlay.classList.add("active");
+        menuToggleBtn.setAttribute("aria-expanded", "true");
+      }
+
+      function closeSidebar() {
+        sidebar.classList.remove("open");
+        menuOverlay.classList.remove("active");
+        menuToggleBtn.setAttribute("aria-expanded", "false");
+      }
+
+      function toggleSidebar() {
+        if (sidebar.classList.contains("open")) {
+          closeSidebar();
+          return;
+        }
+
+        openSidebar();
       }
 
       // ============================================================
@@ -1407,6 +1592,8 @@
         navLinks.forEach((btn) => {
           btn.classList.toggle("active", btn.dataset.page === pageKey);
         });
+
+        closeSidebar();
       }
 
       navLinks.forEach((btn) => {
@@ -1415,18 +1602,72 @@
         });
       });
 
-      [nameInput, timeInput, periodInput, locationInput, prepositionInput, frequencyInput].forEach((input) => {
+      [nameInput, locationInput, prepositionInput, frequencyInput].forEach((input) => {
         input.addEventListener("input", updatePreview);
       });
 
-      periodInput.addEventListener("change", updatePreview);
+      timeInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Backspace" && event.key !== "Delete") {
+          return;
+        }
+
+        event.preventDefault();
+        timeRawDigits = timeRawDigits.slice(0, -1);
+        timeInput.value = formatRawTimeDigits(timeRawDigits);
+        updateTimeHint();
+        updatePreview();
+      });
+
+      timeInput.addEventListener("input", (event) => {
+        const inputType = event.inputType || "";
+
+        if (inputType.startsWith("delete")) {
+          timeInput.value = formatRawTimeDigits(timeRawDigits);
+          updateTimeHint();
+          updatePreview();
+          return;
+        }
+
+        const typedValue = event.data !== null ? event.data : timeInput.value;
+        const newDigits = String(typedValue || "").replace(/\D/g, "");
+
+        if (newDigits) {
+          timeRawDigits = `${timeRawDigits}${newDigits}`.slice(0, 4);
+        }
+
+        timeInput.value = formatRawTimeDigits(timeRawDigits);
+        updateTimeHint();
+        updatePreview();
+      });
+
       frequencyInput.addEventListener("change", () => {
         toggleCustomDaysVisibility();
         updatePreview();
       });
 
+      periodInput.addEventListener("change", updatePreview);
+
       customDayInputs.forEach((input) => {
         input.addEventListener("change", updatePreview);
+      });
+
+      menuToggleBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleSidebar();
+      });
+
+      menuOverlay.addEventListener("click", closeSidebar);
+
+      document.addEventListener("click", (event) => {
+        if (!sidebar.classList.contains("open")) {
+          return;
+        }
+
+        if (sidebar.contains(event.target) || menuToggleBtn.contains(event.target)) {
+          return;
+        }
+
+        closeSidebar();
       });
 
       form.addEventListener("submit", handleAddHabit);
@@ -1453,6 +1694,7 @@
         } else {
           showAppScreen();
           toggleCustomDaysVisibility();
+          updateTimeHint();
           updatePreview();
           todayListEl.innerHTML = '<div class="empty-message">Loading habits...</div>';
           allListEl.innerHTML = '<div class="empty-message">Loading habits...</div>';
