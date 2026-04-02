@@ -378,6 +378,11 @@
         gap: 0.8rem;
       }
 
+      .habit-card .row-between {
+        flex: 1;
+        min-width: 0;
+      }
+
       .form-grid {
         display: grid;
         gap: 0.85rem;
@@ -1476,7 +1481,44 @@
           sentence.className = "sentence";
           sentence.textContent = habitSentence(habit);
 
-          card.append(checkbox, sentence);
+          const delBtn = document.createElement("button");
+          delBtn.className = "delete-btn";
+          delBtn.type = "button";
+          delBtn.setAttribute("aria-label", `Delete ${habit.name}`);
+          delBtn.innerHTML = "&#128465;";
+
+          delBtn.addEventListener("click", async () => {
+            try {
+              setLoadingState("Deleting habit...");
+              await deleteHabit(habit.id);
+              await Promise.all([loadHabits(), loadCompletions()]);
+              renderTodayPage();
+              renderAllHabitsPage();
+            } catch (error) {
+              console.error("Delete habit failed:", error);
+              showFlashMessage("Failed to delete habit.", "error");
+              return;
+            } finally {
+              setLoadingState("");
+            }
+
+            await syncWebhook({
+              action: "delete",
+              id: habit.id,
+              name: habit.name,
+              time: habit.time,
+              location: habit.location,
+              preposition: habit.preposition,
+              frequency: habit.frequency,
+              createdDay: habit.createdDay
+            });
+          });
+
+          const top = document.createElement("div");
+          top.className = "row-between";
+          top.append(sentence, delBtn);
+
+          card.append(checkbox, top);
           todayListEl.appendChild(card);
         });
       }
