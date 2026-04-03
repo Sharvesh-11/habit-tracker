@@ -392,3 +392,28 @@ def create_completion(
 			"user_email": user_email,
 		}
 	}
+@app.get("/n8n/habits")
+def n8n_get_all_habits() -> dict:
+    """
+    Simple export endpoint for n8n:
+    Returns all habits for all users, with user_email.
+    """
+    with closing(get_db_connection()) as conn:
+        rows = conn.execute(
+            """
+            SELECT
+                id,
+                name,
+                time,
+                location,
+                preposition,
+                frequency,
+                customDays,
+                createdDay,
+                user_email
+            FROM habits
+            ORDER BY id DESC
+            """
+        ).fetchall()
+
+    return {"habits": [dict(row) for row in rows]}
