@@ -47,6 +47,10 @@ class CompletionCreate(BaseModel):
 	completed: bool
 
 
+class UserName(BaseModel):
+	name: str
+
+
 def get_db_connection() -> sqlite3.Connection:
 	conn = sqlite3.connect(DB_PATH)
 	conn.row_factory = sqlite3.Row
@@ -79,6 +83,14 @@ def init_db() -> None:
 				date TEXT NOT NULL,
 				user_email TEXT NOT NULL,
 				FOREIGN KEY(habit_id) REFERENCES habits(id)
+			)
+			"""
+		)
+		cursor.execute(
+			"""
+			CREATE TABLE IF NOT EXISTS users (
+				email TEXT PRIMARY KEY,
+				name TEXT NOT NULL
 			)
 			"""
 		)
@@ -277,6 +289,39 @@ def auth_me(user_email: Annotated[str, Depends(get_current_user_email)]) -> dict
 	return {"email": user_email}
 
 
+@app.get("/user/name")
+def get_user_name(user_email: Annotated[str, Depends(get_current_user_email)]) -> dict:
+	with closing(get_db_connection()) as conn:
+		row = conn.execute(
+			"SELECT name FROM users WHERE email = ?",
+			(user_email,),
+		).fetchone()
+
+	if row:
+		return {"name": row["name"]}
+
+	return {"name": None}
+
+
+@app.post("/user/name")
+def upsert_user_name(
+	data: UserName,
+	user_email: Annotated[str, Depends(get_current_user_email)],
+) -> dict:
+	with closing(get_db_connection()) as conn:
+		conn.execute(
+			"""
+			INSERT INTO users (email, name)
+			VALUES (?, ?)
+			ON CONFLICT(email) DO UPDATE SET name = excluded.name
+			""",
+			(user_email, data.name),
+		)
+		conn.commit()
+
+	return {"email": user_email, "name": data.name}
+
+
 @app.get("/habits")
 def get_habits(user_email: Annotated[str, Depends(get_current_user_email)]) -> dict:
 	with closing(get_db_connection()) as conn:
@@ -394,26 +439,28 @@ def create_completion(
 	}
 @app.get("/n8n/habits")
 def n8n_get_all_habits() -> dict:
-    """
-    Simple export endpoint for n8n:
-    Returns all habits for all users, with user_email.
-    """
-    with closing(get_db_connection()) as conn:
-        rows = conn.execute(
-            """
-            SELECT
-                id,
-                name,
-                time,
-                location,
-                preposition,
-                frequency,
-                customDays,
-                createdDay,
-                user_email
-            FROM habits
-            ORDER BY id DESC
-            """
-        ).fetchall()
+	"""
+	Simple export endpoint for n8n:
+	Returns all habits for all users, with user_email.
+	"""
+	with closing(get_db_connection()) as conn:
+		rows = conn.execute(
+			"""
+			SELECT
+				h.id,
+				h.name,
+				h.time,
+				h.location,
+				h.preposition,
+				h.frequency,
+				h.customDays,
+				h.createdDay,
+				h.user_email,
+				u.name AS user_name
+			FROM habits h
+			LEFT JOIN users u ON h.user_email = u.email
+			ORDER BY h.id DESC
+			"""
+		).fetchall()
 
-    return {"habits": [dict(row) for row in rows]}
+	return {"habits": [dict(row) for row in rows]}

@@ -254,6 +254,25 @@
         margin-bottom: 0.35rem;
       }
 
+      .welcome-banner {
+        margin-bottom: 1rem;
+        padding: 1rem 1.1rem;
+        border: 1px solid #dfd1bd;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #fffdf9 0%, #f7efe1 100%);
+        box-shadow: 0 14px 30px rgba(84, 63, 32, 0.08);
+      }
+
+      .welcome-banner h1 {
+        font-size: clamp(2rem, 4vw, 3rem);
+        margin: 0;
+      }
+
+      .welcome-banner p {
+        margin: 0.4rem 0 0;
+        color: #5f5343;
+      }
+
       .dot-pattern {
         position: relative;
         width: 100%;
@@ -512,18 +531,20 @@
         align-items: center;
         justify-content: center;
         padding: 1rem;
-        background: rgba(0, 0, 0, 0.62);
-        z-index: 1200;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1500;
       }
 
       .user-modal-box {
         width: min(420px, 100%);
-        background: #1f1f1f;
-        color: var(--sidebar-text);
-        border: 1px solid rgba(245, 240, 232, 0.16);
-        border-radius: 14px;
+        background: #fdf9f2;
+        color: var(--text);
+        border: 1px solid #e0d2bf;
+        border-radius: 18px;
         box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
-        padding: 1.2rem;
+        padding: 1.3rem;
       }
 
       .user-modal-title {
@@ -534,7 +555,7 @@
 
       .user-modal-subtitle {
         margin: 0.45rem 0 0.95rem;
-        color: #d5c8b4;
+        color: #5f5343;
       }
 
       .user-modal-form {
@@ -545,20 +566,27 @@
       .user-modal-form input {
         width: 100%;
         border-radius: 10px;
-        border: 1px solid rgba(245, 240, 232, 0.24);
-        background: rgba(255, 255, 255, 0.06);
-        color: var(--sidebar-text);
+        border: 1px solid #cdbb9f;
+        background: #fff;
+        color: var(--text);
         padding: 0.72rem 0.82rem;
         font: inherit;
       }
 
       .user-modal-form input::placeholder {
-        color: #bfb4a2;
+        color: #8b7d68;
       }
 
       .user-modal-form input:focus-visible {
         outline: 2px solid rgba(200, 150, 62, 0.75);
         outline-offset: 1px;
+      }
+
+      .user-modal-error {
+        margin: -0.25rem 0 0;
+        min-height: 1rem;
+        color: var(--danger);
+        font-size: 0.9rem;
       }
 
       .login-screen {
@@ -801,6 +829,10 @@
       </aside>
 
       <main class="content">
+        <section class="welcome-banner" aria-live="polite">
+          <h1 id="welcome-title">Welcome to Habit Tracker!</h1>
+          <p id="welcome-subtitle">Let's build your habits, one small win at a time.</p>
+        </section>
         <div id="sync-indicator" class="sync-indicator"></div>
         <div id="flash-message" class="flash-message"></div>
 
@@ -947,13 +979,13 @@
 
     <div id="userModal" aria-hidden="true">
       <div class="user-modal-box" role="dialog" aria-modal="true" aria-labelledby="user-modal-title">
-        <h2 id="user-modal-title" class="user-modal-title">Before we begin</h2>
-        <p class="user-modal-subtitle">Enter your details to track your habits</p>
-        <div class="user-modal-form">
-          <input id="userNameInput" type="text" placeholder="Name" />
-          <input id="userEmailInput" type="email" placeholder="Email" />
-          <button id="saveUserBtn" type="button">Continue</button>
-        </div>
+        <h2 id="user-modal-title" class="user-modal-title">Welcome to Habit Tracker!</h2>
+        <p class="user-modal-subtitle">Before we get started, what should we call you?</p>
+        <form id="user-modal-form" class="user-modal-form">
+          <input id="userNameInput" type="text" placeholder="Your name" autocomplete="name" />
+          <p id="userNameError" class="user-modal-error" aria-live="polite"></p>
+          <button id="saveUserBtn" type="submit">Save my name</button>
+        </form>
       </div>
     </div>
 
@@ -978,6 +1010,9 @@
       let token = localStorage.getItem("token") || "";
       let habits = [];
       let completions = {};
+      let userName = null;
+      let showNamePopup = false;
+      let tempName = "";
 
       const pages = {
         today: document.getElementById("page-today"),
@@ -1007,14 +1042,16 @@
       const previewEl = document.getElementById("preview");
       const previewSentenceEl = document.getElementById("preview-sentence");
       const successMsgEl = document.getElementById("success-msg");
+      const welcomeTitleEl = document.getElementById("welcome-title");
+      const welcomeSubtitleEl = document.getElementById("welcome-subtitle");
       const userModal = document.getElementById("userModal");
+      const userModalForm = document.getElementById("user-modal-form");
       const userNameInput = document.getElementById("userNameInput");
-      const userEmailInput = document.getElementById("userEmailInput");
+      const userNameErrorEl = document.getElementById("userNameError");
       const saveUserBtn = document.getElementById("saveUserBtn");
       const appRoot = document.querySelector(".app");
       const loginScreen = document.getElementById("login-screen");
       const logoutBtn = document.getElementById("logout-btn");
-      let pendingHabitSubmit = false;
       let timeRawDigits = "";
 
       // ============================================================
@@ -1078,6 +1115,128 @@
 
       function setLoadingState(message) {
         showSyncStatus(message || "");
+      }
+
+      function renderGreeting() {
+        if (userName) {
+          welcomeTitleEl.textContent = `Welcome to Habit Tracker, ${userName}!`;
+        } else {
+          welcomeTitleEl.textContent = "Welcome to Habit Tracker!";
+        }
+
+        welcomeSubtitleEl.textContent = "Let's build your habits, one small win at a time.";
+      }
+
+      function setNameValidation(message) {
+        userNameErrorEl.textContent = message || "";
+      }
+
+      function openUserModal() {
+        showNamePopup = true;
+        userModal.style.display = "flex";
+        userModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("modal-open");
+        setNameValidation("");
+        userNameInput.value = tempName;
+        window.setTimeout(() => {
+          userNameInput.focus();
+        }, 0);
+      }
+
+      function closeUserModal() {
+        showNamePopup = false;
+        userModal.style.display = "none";
+        userModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("modal-open");
+        setNameValidation("");
+      }
+
+      function updateNamePopupVisibility() {
+        if (showNamePopup) {
+          openUserModal();
+          return;
+        }
+
+        closeUserModal();
+      }
+
+      async function loadUserName() {
+        try {
+          const response = await fetch(`${API_BASE_URL}/user/name`, {
+            method: "GET",
+            headers: authHeaders()
+          });
+
+          if (response.status === 404) {
+            userName = null;
+            tempName = "";
+            showNamePopup = true;
+            renderGreeting();
+            updateNamePopupVisibility();
+            return;
+          }
+
+          const data = await parseResponse(response);
+          const savedName = typeof data?.name === "string" ? data.name.trim() : "";
+
+          if (savedName) {
+            userName = savedName;
+            tempName = savedName;
+            showNamePopup = false;
+          } else {
+            userName = null;
+            tempName = "";
+            showNamePopup = true;
+          }
+
+          renderGreeting();
+          updateNamePopupVisibility();
+        } catch (error) {
+          console.error("Load user name failed:", error);
+          userName = null;
+          tempName = "";
+          showNamePopup = true;
+          renderGreeting();
+          updateNamePopupVisibility();
+        }
+      }
+
+      async function saveUserName() {
+        const name = userNameInput.value.trim();
+
+        if (!name) {
+          setNameValidation("Please enter your name.");
+          return;
+        }
+
+        tempName = name;
+
+        try {
+          saveUserBtn.disabled = true;
+          setNameValidation("");
+
+          const response = await fetch(`${API_BASE_URL}/user/name`, {
+            method: "POST",
+            headers: {
+              ...authHeaders(),
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name })
+          });
+
+          const data = await parseResponse(response);
+          const savedName = typeof data?.name === "string" ? data.name.trim() : name;
+
+          userName = savedName || name;
+          tempName = userName;
+          renderGreeting();
+          closeUserModal();
+        } catch (error) {
+          console.error("Save user name failed:", error);
+          setNameValidation("Could not save your name. Please try again.");
+        } finally {
+          saveUserBtn.disabled = false;
+        }
       }
 
       async function loadHabits() {
@@ -1292,18 +1451,6 @@
         customDaysGroup.classList.toggle("active", isCustom);
       }
 
-      function openUserModal() {
-        userModal.style.display = "flex";
-        userModal.setAttribute("aria-hidden", "false");
-        document.body.classList.add("modal-open");
-      }
-
-      function closeUserModal() {
-        userModal.style.display = "none";
-        userModal.setAttribute("aria-hidden", "true");
-        document.body.classList.remove("modal-open");
-      }
-
       async function continueHabitSubmission() {
         const normalizedTime = toStorageTime(timeRawDigits);
 
@@ -1374,28 +1521,6 @@
       async function handleAddHabit(event) {
         event.preventDefault();
         await continueHabitSubmission();
-      }
-
-      async function saveUserAndContinue() {
-        const name = userNameInput.value.trim();
-        const email = userEmailInput.value.trim();
-
-        if (!name || !email) {
-          showFlashMessage("Please enter name and email.", "error");
-          return;
-        }
-
-        if (!email.includes("@")) {
-          showFlashMessage("Please enter a valid email address.", "error");
-          return;
-        }
-
-        closeUserModal();
-
-        if (pendingHabitSubmit) {
-          pendingHabitSubmit = false;
-          await continueHabitSubmission();
-        }
       }
 
       // ============================================================
@@ -1648,6 +1773,11 @@
         input.addEventListener("input", updatePreview);
       });
 
+      userNameInput.addEventListener("input", () => {
+        tempName = userNameInput.value;
+        setNameValidation("");
+      });
+
       timeInput.addEventListener("keydown", (event) => {
         if (event.key !== "Backspace" && event.key !== "Delete") {
           return;
@@ -1714,10 +1844,9 @@
 
       form.addEventListener("submit", handleAddHabit);
 
-      saveUserBtn.addEventListener("click", saveUserAndContinue);
-
-      userModal.addEventListener("click", (event) => {
-        event.stopPropagation();
+      userModalForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await saveUserName();
       });
 
       logoutBtn.addEventListener("click", () => {
@@ -1735,6 +1864,7 @@
           showLoginScreen();
         } else {
           showAppScreen();
+          renderGreeting();
           toggleCustomDaysVisibility();
           updateTimeHint();
           updatePreview();
@@ -1744,7 +1874,7 @@
           (async () => {
             try {
               setLoadingState("Loading habits...");
-              await Promise.all([loadHabits(), loadCompletions()]);
+              await Promise.all([loadHabits(), loadCompletions(), loadUserName()]);
               renderTodayPage();
               renderAllHabitsPage();
             } catch (error) {
