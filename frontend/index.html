@@ -532,7 +532,7 @@
         align-items: center;
         justify-content: center;
         padding: 1rem;
-        background: rgba(0, 0, 0, 0.55);
+        background: rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
         z-index: 1500;
@@ -540,9 +540,9 @@
 
       .user-modal-box {
         width: min(420px, 100%);
-        background: #fdf9f2;
-        color: var(--text);
-        border: 1px solid #e0d2bf;
+        background: #060606;
+        color: #f3efe4;
+        border: 1px solid #d4af37;
         border-radius: 18px;
         box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
         padding: 1.3rem;
@@ -556,7 +556,7 @@
 
       .user-modal-subtitle {
         margin: 0.45rem 0 0.95rem;
-        color: #5f5343;
+        color: #d6c28a;
       }
 
       .user-modal-form {
@@ -567,26 +567,26 @@
       .user-modal-form input {
         width: 100%;
         border-radius: 10px;
-        border: 1px solid #cdbb9f;
-        background: #fff;
-        color: var(--text);
+        border: 1px solid #b58f2e;
+        background: #101010;
+        color: #f3efe4;
         padding: 0.72rem 0.82rem;
         font: inherit;
       }
 
       .user-modal-form input::placeholder {
-        color: #8b7d68;
+        color: #9d8750;
       }
 
       .user-modal-form input:focus-visible {
-        outline: 2px solid rgba(200, 150, 62, 0.75);
+        outline: 2px solid #ffd700;
         outline-offset: 1px;
       }
 
       .user-modal-error {
         margin: -0.25rem 0 0;
         min-height: 1rem;
-        color: var(--danger);
+        color: #f1d069;
         font-size: 0.9rem;
       }
 
@@ -642,19 +642,21 @@
       }
 
       #saveUserBtn {
-        border: 0;
+        border: 1px solid #ffd700;
         border-radius: 10px;
         padding: 0.74rem 0.88rem;
         font: inherit;
         font-weight: 700;
-        color: #251a0c;
-        background: var(--accent);
+        color: #ffd700;
+        background: #0b0b0b;
         cursor: pointer;
-        transition: filter 140ms ease;
+        transition: background-color 140ms ease, color 140ms ease, filter 140ms ease;
       }
 
       #saveUserBtn:hover {
-        filter: brightness(0.95);
+        background: #d4af37;
+        color: #0f0f0f;
+        filter: brightness(0.98);
       }
 
       @media (max-width: 1024px) {
