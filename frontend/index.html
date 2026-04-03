@@ -254,23 +254,24 @@
         margin-bottom: 0.35rem;
       }
 
-      .welcome-banner {
-        margin-bottom: 1rem;
-        padding: 1rem 1.1rem;
-        border: 1px solid #dfd1bd;
-        border-radius: 16px;
-        background: linear-gradient(135deg, #fffdf9 0%, #f7efe1 100%);
-        box-shadow: 0 14px 30px rgba(84, 63, 32, 0.08);
+      .today-welcome {
+        margin: 0 0 0.65rem;
+        color: #7a7163;
       }
 
-      .welcome-banner h1 {
-        font-size: clamp(2rem, 4vw, 3rem);
+      .today-welcome-title {
         margin: 0;
+        font-size: 0.9rem;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        font-weight: 500;
+        line-height: 1.4;
       }
 
-      .welcome-banner p {
-        margin: 0.4rem 0 0;
-        color: #5f5343;
+      .today-welcome-subtitle {
+        margin: 0.18rem 0 0;
+        font-size: 0.82rem;
+        color: #8b8376;
+        line-height: 1.4;
       }
 
       .dot-pattern {
@@ -829,14 +830,14 @@
       </aside>
 
       <main class="content">
-        <section class="welcome-banner" aria-live="polite">
-          <h1 id="welcome-title">Welcome to Habit Tracker!</h1>
-          <p id="welcome-subtitle">Let's build your habits, one small win at a time.</p>
-        </section>
         <div id="sync-indicator" class="sync-indicator"></div>
         <div id="flash-message" class="flash-message"></div>
 
         <section id="page-today" class="page active">
+          <div id="today-welcome" class="today-welcome" hidden>
+            <p id="today-welcome-title" class="today-welcome-title"></p>
+            <p id="today-welcome-subtitle" class="today-welcome-subtitle">Let's make today's habits a little stronger.</p>
+          </div>
           <div class="section-head">
             <div class="dot-pattern" aria-hidden="true">
               <span style="--x: 1%; --y: 12%"></span><span style="--x: 3%; --y: 48%"></span><span style="--x: 6%; --y: 22%"></span><span style="--x: 8%; --y: 70%"></span><span style="--x: 10%; --y: 34%"></span><span style="--x: 12%; --y: 82%"></span><span style="--x: 14%; --y: 16%"></span><span style="--x: 16%; --y: 58%"></span><span style="--x: 18%; --y: 40%"></span><span style="--x: 20%; --y: 76%"></span>
@@ -1027,6 +1028,8 @@
       const syncIndicator = document.getElementById("sync-indicator");
       const flashMessageEl = document.getElementById("flash-message");
       const todayDateEl = document.getElementById("today-date");
+      const todayWelcomeEl = document.getElementById("today-welcome");
+      const todayWelcomeTitleEl = document.getElementById("today-welcome-title");
       const todayListEl = document.getElementById("today-list");
       const allListEl = document.getElementById("all-list");
       const form = document.getElementById("habit-form");
@@ -1042,8 +1045,6 @@
       const previewEl = document.getElementById("preview");
       const previewSentenceEl = document.getElementById("preview-sentence");
       const successMsgEl = document.getElementById("success-msg");
-      const welcomeTitleEl = document.getElementById("welcome-title");
-      const welcomeSubtitleEl = document.getElementById("welcome-subtitle");
       const userModal = document.getElementById("userModal");
       const userModalForm = document.getElementById("user-modal-form");
       const userNameInput = document.getElementById("userNameInput");
@@ -1117,14 +1118,15 @@
         showSyncStatus(message || "");
       }
 
-      function renderGreeting() {
-        if (userName) {
-          welcomeTitleEl.textContent = `Welcome to Habit Tracker, ${userName}!`;
-        } else {
-          welcomeTitleEl.textContent = "Welcome to Habit Tracker!";
+      function renderTodayWelcome() {
+        if (!userName) {
+          todayWelcomeEl.hidden = true;
+          todayWelcomeTitleEl.textContent = "";
+          return;
         }
 
-        welcomeSubtitleEl.textContent = "Let's build your habits, one small win at a time.";
+        todayWelcomeTitleEl.textContent = `Welcome to Habit Tracker, ${userName}!`;
+        todayWelcomeEl.hidden = false;
       }
 
       function setNameValidation(message) {
@@ -1171,7 +1173,7 @@
             userName = null;
             tempName = "";
             showNamePopup = true;
-            renderGreeting();
+            renderTodayWelcome();
             updateNamePopupVisibility();
             return;
           }
@@ -1189,14 +1191,14 @@
             showNamePopup = true;
           }
 
-          renderGreeting();
+          renderTodayWelcome();
           updateNamePopupVisibility();
         } catch (error) {
           console.error("Load user name failed:", error);
           userName = null;
           tempName = "";
           showNamePopup = true;
-          renderGreeting();
+          renderTodayWelcome();
           updateNamePopupVisibility();
         }
       }
@@ -1229,7 +1231,7 @@
 
           userName = savedName || name;
           tempName = userName;
-          renderGreeting();
+          renderTodayWelcome();
           closeUserModal();
         } catch (error) {
           console.error("Save user name failed:", error);
@@ -1527,8 +1529,6 @@
       // Webhook sync
       // ============================================================
       async function syncWebhook(payload) {
-        showSyncStatus("Syncing...");
-
         try {
           const response = await fetch(WEBHOOK_URL, {
             method: "POST",
@@ -1546,10 +1546,8 @@
           }
 
           console.log("Webhook response:", data);
-          showSyncStatus("Synced ✓", "success");
         } catch (error) {
           console.log("Webhook error:", error);
-          showSyncStatus("Sync failed (saved locally)", "error");
         }
       }
 
@@ -1864,7 +1862,6 @@
           showLoginScreen();
         } else {
           showAppScreen();
-          renderGreeting();
           toggleCustomDaysVisibility();
           updateTimeHint();
           updatePreview();
