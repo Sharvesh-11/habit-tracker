@@ -4,7 +4,8 @@
  
 # NEVER commit your real environment file — it contains secrets
 .env
- 
+.env.*
+*.save 
 # Python cache files — generated automatically, not part of your code
 __pycache__/
 *.pyc
