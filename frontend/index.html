@@ -1205,6 +1205,35 @@
         }
       }
 
+      function getStoredUserEmail() {
+        const email = (localStorage.getItem("habit_tracker_email") || "").trim();
+        if (email) {
+          return email;
+        }
+
+        try {
+          const rawUser = localStorage.getItem("habit_tracker_user") || "{}";
+          const parsedUser = JSON.parse(rawUser);
+          return typeof parsedUser?.email === "string" ? parsedUser.email.trim() : "";
+        } catch (error) {
+          console.error("Read stored user failed:", error);
+          return "";
+        }
+      }
+
+      async function registerUser(name, email) {
+        const response = await fetch(`${API_BASE_URL}/users/register`, {
+          method: "POST",
+          headers: {
+            ...authHeaders(),
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ name, email })
+        });
+
+        return parseResponse(response);
+      }
+
       async function saveUserName() {
         const name = userNameInput.value.trim();
 
@@ -1218,6 +1247,23 @@
         try {
           saveUserBtn.disabled = true;
           setNameValidation("");
+
+          if (!userName) {
+            const email = getStoredUserEmail();
+
+            if (!email) {
+              setNameValidation("Could not save user info, please try again.");
+              return;
+            }
+
+            try {
+              await registerUser(name, email);
+            } catch (registerError) {
+              console.error("Register user failed:", registerError);
+              setNameValidation("Could not save user info, please try again.");
+              return;
+            }
+          }
 
           const response = await fetch(`${API_BASE_URL}/user/name`, {
             method: "POST",
