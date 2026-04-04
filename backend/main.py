@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime
 import hashlib
 import hmac
 import json
@@ -17,6 +18,8 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
+from sqlalchemy import DateTime, Integer, String, create_engine, func, select
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 
 load_dotenv()
@@ -29,6 +32,27 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "habit_tracker.db"
 TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7
+
+
+class Base(DeclarativeBase):
+	pass
+
+
+class AnalyticsUser(Base):
+	__tablename__ = "users_analytics"
+
+	id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+	email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+	name: Mapped[str] = mapped_column(String, nullable=False)
+	created_at: Mapped[datetime] = mapped_column(
+		DateTime(timezone=True), nullable=False, server_default=func.now()
+	)
+
+
+engine = create_engine(
+	f"sqlite:///{DB_PATH}",
+	connect_args={"check_same_thread": False},
+)
 
 
 class HabitCreate(BaseModel):
@@ -95,6 +119,20 @@ def init_db() -> None:
 			"""
 		)
 		conn.commit()
+
+	Base.metadata.create_all(bind=engine)
+
+
+def ensure_analytics_user_exists(user_email: str, user_name: str) -> None:
+	with Session(engine) as session:
+		existing_id = session.execute(
+			select(AnalyticsUser.id).where(AnalyticsUser.email == user_email)
+		).scalar_one_or_none()
+		if existing_id is not None:
+			return
+
+		session.add(AnalyticsUser(email=user_email, name=user_name))
+		session.commit()
 
 
 def _base64url_encode(data: bytes) -> str:
@@ -308,6 +346,8 @@ def upsert_user_name(
 	data: UserName,
 	user_email: Annotated[str, Depends(get_current_user_email)],
 ) -> dict:
+	ensure_analytics_user_exists(user_email=user_email, user_name=data.name)
+
 	with closing(get_db_connection()) as conn:
 		conn.execute(
 			"""
@@ -320,6 +360,22 @@ def upsert_user_name(
 		conn.commit()
 
 	return {"email": user_email, "name": data.name}
+
+
+@app.get("/n8n/users")
+def n8n_get_users() -> list[dict]:
+	with Session(engine) as session:
+		rows = session.execute(select(AnalyticsUser).order_by(AnalyticsUser.id.asc())).scalars().all()
+
+	return [
+		{
+			"id": row.id,
+			"name": row.name,
+			"email": row.email,
+			"created_at": row.created_at,
+		}
+		for row in rows
+	]
 
 
 @app.get("/habits")
