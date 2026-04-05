@@ -386,7 +386,18 @@ def get_habits(user_email: Annotated[str, Depends(get_current_user_email)]) -> d
 			"FROM habits WHERE user_email = ? ORDER BY id DESC",
 			(user_email,),
 		).fetchall()
-	return {"habits": [dict(row) for row in rows]}
+	
+	habits = []
+	for row in rows:
+		habit = dict(row)
+		custom_days = habit.get('customDays')
+		if custom_days:
+			habit['customDays'] = json.loads(custom_days)
+		else:
+			habit['customDays'] = []
+		habits.append(habit)
+	
+	return {"habits": habits}
 
 
 @app.post("/habits")
