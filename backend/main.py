@@ -29,8 +29,7 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 SECRET_KEY = os.getenv("SECRET_KEY", "")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
-BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "habit_tracker.db"
+DB_PATH = Path(os.getenv("DB_PATH", "/app/data/habit_tracker.db"))
 TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7
 
 
