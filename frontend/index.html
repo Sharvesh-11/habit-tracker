@@ -258,6 +258,18 @@
         gap: 0.8rem;
       }
 
+      .habit-card[draggable="true"] {
+        cursor: grab;
+      }
+
+      .habit-card.dragging {
+        opacity: 0.4;
+      }
+
+      .habit-card.drag-over {
+        border: 2px dashed var(--accent);
+      }
+
       .habit-card input[type="checkbox"] {
         width: auto;
         padding: 0;
@@ -321,6 +333,45 @@
 
       .delete-btn:hover {
         background: #ffe8e3;
+      }
+
+      .edit-btn {
+        border: 1px solid #d9c8ae;
+        color: #5f4f3a;
+        background: #fdf6ea;
+        border-radius: 10px;
+        padding: 0.35rem 0.55rem;
+        cursor: pointer;
+      }
+
+      .edit-btn:hover {
+        background: #f7ead4;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 0.6rem;
+        margin-top: 1rem;
+      }
+
+      .modal-save-btn {
+        flex: 1;
+        padding: 0.7rem;
+        background: var(--accent);
+        color: #23190a;
+        border: 0;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .modal-cancel-btn {
+        padding: 0.7rem 1rem;
+        background: transparent;
+        color: #5f4f3a;
+        border: 1px solid #d9c8ae;
+        border-radius: 10px;
+        cursor: pointer;
       }
 
       .row-between {
@@ -448,6 +499,26 @@
         padding: 1rem;
         background: rgba(0, 0, 0, 0.62);
         z-index: 1200;
+      }
+
+      #editModal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.55);
+        z-index: 1200;
+      }
+
+      .edit-modal-box {
+        width: min(480px, 100%);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.4rem;
+        box-shadow: var(--shadow);
       }
 
       .user-modal-box {
@@ -833,6 +904,7 @@
       // Configuration and storage keys
       // ============================================================
       const HABITS_KEY = "habits";
+      const API_BASE = "http://localhost:8000";
       const WEEK_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       const todayDate = new Date();
       const todayDay = WEEK_DAYS[todayDate.getDay()];
@@ -892,10 +964,19 @@
       const loginScreen = document.getElementById("login-screen");
       const logoutBtn = document.getElementById("logout-btn");
       let pendingHabitSubmit = false;
+      let editingHabitId = null;
+      let dragSrcIndex = null;
 
       // ============================================================
       // Utility helpers
       // ============================================================
+      function authHeaders() {
+        return {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token")
+        };
+      }
+
       function saveHabits() {
         localStorage.setItem(HABITS_KEY, JSON.stringify(habits));
       }
@@ -1045,6 +1126,88 @@
         document.body.classList.remove("modal-open");
       }
 
+      function openEditModal(habit) {
+        const editModal = document.getElementById("editModal");
+        const editName = document.getElementById("editName");
+        const editTime = document.getElementById("editTime");
+        const editPeriod = document.getElementById("editPeriod");
+        const editLocation = document.getElementById("editLocation");
+        const editPreposition = document.getElementById("editPreposition");
+        const editFrequency = document.getElementById("editFrequency");
+
+        editingHabitId = habit.id;
+
+        const [timePart = "", periodPart = "AM"] = String(habit.time || "").trim().split(/\s+/);
+
+        editName.value = habit.name || "";
+        editTime.value = timePart;
+        editPeriod.value = periodPart.toUpperCase() === "PM" ? "PM" : "AM";
+        editLocation.value = habit.location || habit.place || "";
+        editPreposition.value = habit.preposition || "in";
+        editFrequency.value = habit.frequency || "Daily";
+
+        editModal.style.display = "flex";
+        editModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("modal-open");
+      }
+
+      function closeEditModal() {
+        const editModal = document.getElementById("editModal");
+        editingHabitId = null;
+        editModal.style.display = "none";
+        editModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("modal-open");
+      }
+
+      async function saveEditedHabit() {
+        if (editingHabitId === null) {
+          return;
+        }
+
+        const editName = document.getElementById("editName");
+        const editTime = document.getElementById("editTime");
+        const editPeriod = document.getElementById("editPeriod");
+        const editLocation = document.getElementById("editLocation");
+        const editPreposition = document.getElementById("editPreposition");
+        const editFrequency = document.getElementById("editFrequency");
+
+        const updatedHabitData = {
+          name: editName.value.trim(),
+          time: combineTime(editTime.value, editPeriod.value),
+          location: editLocation.value.trim(),
+          preposition: editPreposition.value,
+          frequency: editFrequency.value
+        };
+
+        const response = await fetch(`${API_BASE}/habits/${editingHabitId}`, {
+          method: "PUT",
+          headers: authHeaders(),
+          body: JSON.stringify(updatedHabitData)
+        });
+
+        if (!response.ok) {
+          showFlashMessage("Could not update habit.", "error");
+          return;
+        }
+
+        habits = habits.map((habit) => {
+          if (habit.id !== editingHabitId) {
+            return habit;
+          }
+
+          return {
+            ...habit,
+            ...updatedHabitData
+          };
+        });
+
+        saveHabits();
+        renderTodayPage();
+        renderAllHabitsPage();
+        closeEditModal();
+        showFlashMessage("Habit updated.", "success");
+      }
+
       async function continueHabitSubmission() {
         const selectedCustomDays = getSelectedCustomDays();
 
@@ -1162,6 +1325,66 @@
         }
       }
 
+      function makeDraggable(cardEl, habitIndex) {
+        cardEl.setAttribute("draggable", "true");
+
+        cardEl.addEventListener("dragstart", () => {
+          dragSrcIndex = habitIndex;
+          cardEl.classList.add("dragging");
+        });
+
+        cardEl.addEventListener("dragend", () => {
+          cardEl.classList.remove("dragging");
+          document.querySelectorAll(".habit-card").forEach((card) => {
+            card.classList.remove("drag-over");
+          });
+        });
+
+        cardEl.addEventListener("dragover", (event) => {
+          event.preventDefault();
+        });
+
+        cardEl.addEventListener("dragenter", () => {
+          cardEl.classList.add("drag-over");
+        });
+
+        cardEl.addEventListener("dragleave", () => {
+          cardEl.classList.remove("drag-over");
+        });
+
+        cardEl.addEventListener("drop", async () => {
+          cardEl.classList.remove("drag-over");
+
+          if (dragSrcIndex === null || dragSrcIndex === habitIndex) {
+            return;
+          }
+
+          const [movedHabit] = habits.splice(dragSrcIndex, 1);
+          if (!movedHabit) {
+            return;
+          }
+          habits.splice(habitIndex, 0, movedHabit);
+
+          saveHabits();
+          renderTodayPage();
+
+          try {
+            await fetch("/habits/reorder", {
+              method: "PATCH",
+              headers: authHeaders(),
+              body: JSON.stringify(
+                habits.map((habit, index) => ({
+                  id: habit.id,
+                  sort_order: index
+                }))
+              )
+            });
+          } catch (error) {
+            console.error("Failed to sync habit order", error);
+          }
+        });
+      }
+
       // ============================================================
       // Rendering functions
       // ============================================================
@@ -1180,7 +1403,7 @@
           return;
         }
 
-        filtered.forEach((habit) => {
+        filtered.forEach((habit, index) => {
           const card = document.createElement("article");
           card.className = "habit-card";
 
@@ -1203,7 +1426,16 @@
           sentence.className = "sentence";
           sentence.textContent = habitSentence(habit);
 
-          card.append(checkbox, sentence);
+          const editBtn = document.createElement("button");
+          editBtn.className = "edit-btn";
+          editBtn.type = "button";
+          editBtn.textContent = "✏ Edit";
+          editBtn.addEventListener("click", () => {
+            openEditModal(habit);
+          });
+
+          makeDraggable(card, index);
+          card.append(checkbox, sentence, editBtn);
           todayListEl.appendChild(card);
         });
       }
@@ -1233,6 +1465,14 @@
           delBtn.setAttribute("aria-label", `Delete ${habit.name}`);
           delBtn.innerHTML = "&#128465;";
 
+          const editBtn = document.createElement("button");
+          editBtn.className = "edit-btn";
+          editBtn.type = "button";
+          editBtn.textContent = "✏ Edit";
+          editBtn.addEventListener("click", () => {
+            openEditModal(habit);
+          });
+
           delBtn.addEventListener("click", async () => {
             habits = habits.filter((h) => h.id !== habit.id);
             delete completions[habit.id];
@@ -1253,7 +1493,7 @@
             });
           });
 
-          top.append(sentence, delBtn);
+          top.append(sentence, editBtn, delBtn);
 
           const badge = document.createElement("span");
           badge.className = "badge";
@@ -1315,6 +1555,20 @@
 
       form.addEventListener("submit", handleAddHabit);
 
+      document.getElementById("editSaveBtn").addEventListener("click", () => {
+        saveEditedHabit();
+      });
+
+      document.getElementById("editCancelBtn").addEventListener("click", () => {
+        closeEditModal();
+      });
+
+      document.getElementById("editModal").addEventListener("click", (event) => {
+        if (event.target === document.getElementById("editModal")) {
+          closeEditModal();
+        }
+      });
+
       saveUserBtn.addEventListener("click", saveUserAndContinue);
 
       userModal.addEventListener("click", (event) => {
@@ -1344,5 +1598,44 @@
         }
       }
     </script>
+
+    <div id="editModal" aria-hidden="true">
+      <div class="edit-modal-box" role="dialog">
+        <h2>Edit Habit</h2>
+        <div class="form-grid">
+          <input id="editName" type="text" placeholder="Habit name" />
+
+          <div class="time-row">
+            <input id="editTime" type="text" placeholder="10:00" />
+            <select id="editPeriod">
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+
+          <div class="location-row">
+            <input id="editLocation" type="text" placeholder="Location" />
+            <select id="editPreposition">
+              <option value="in">in</option>
+              <option value="on">on</option>
+              <option value="at">at</option>
+            </select>
+          </div>
+
+          <select id="editFrequency">
+            <option value="Daily">Daily</option>
+            <option value="Weekdays">Weekdays</option>
+            <option value="Weekends">Weekends</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button id="editSaveBtn" class="modal-save-btn" type="button">Save changes</button>
+          <button id="editCancelBtn" class="modal-cancel-btn" type="button">Cancel</button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
