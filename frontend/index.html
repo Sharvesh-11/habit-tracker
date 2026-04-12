@@ -40,47 +40,6 @@
         display: none;
       }
 
-      .menu-toggle {
-        position: fixed;
-        top: 16px;
-        left: 16px;
-        width: 44px;
-        height: 44px;
-        border: 0;
-        border-radius: 10px;
-        background: #1c1c1c;
-        color: #c8963e;
-        font-size: 1.55rem;
-        line-height: 1;
-        cursor: pointer;
-        z-index: 1400;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 8px 18px rgba(84, 63, 32, 0.26);
-      }
-
-      .menu-toggle:hover {
-        filter: brightness(0.96);
-      }
-
-      .menu-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transition: opacity 180ms ease;
-        z-index: 1250;
-      }
-
-      .menu-overlay.active {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-      }
-
       .sidebar {
         position: fixed;
         left: 0;
@@ -89,18 +48,11 @@
         height: 100vh;
         background: var(--sidebar);
         color: var(--sidebar-text);
-        padding: 4.2rem 1.2rem 2rem;
+        padding: 2rem 1.2rem;
         box-shadow: 6px 0 20px rgba(0, 0, 0, 0.15);
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        z-index: 1300;
-        transform: translateX(-100%);
-        transition: transform 220ms ease;
-      }
-
-      .sidebar.open {
-        transform: translateX(0);
       }
 
       .brand {
@@ -193,8 +145,9 @@
       }
 
       .content {
+        margin-left: 260px;
         min-height: 100vh;
-        padding: 4.75rem 2.25rem 2.25rem;
+        padding: 2.25rem;
       }
 
       .sync-indicator {
@@ -252,26 +205,6 @@
 
       .section-head {
         margin-bottom: 0.35rem;
-      }
-
-      .today-welcome {
-        margin: 0 0 0.65rem;
-        color: #7a7163;
-      }
-
-      .today-welcome-title {
-        margin: 0;
-        font-size: 0.9rem;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        font-weight: 500;
-        line-height: 1.4;
-      }
-
-      .today-welcome-subtitle {
-        margin: 0.18rem 0 0;
-        font-size: 0.82rem;
-        color: #8b8376;
-        line-height: 1.4;
       }
 
       .dot-pattern {
@@ -346,7 +279,6 @@
         margin: 0;
         flex: 1;
         min-width: 0;
-        overflow-wrap: anywhere;
       }
 
       .quote,
@@ -398,11 +330,6 @@
         gap: 0.8rem;
       }
 
-      .habit-card .row-between {
-        flex: 1;
-        min-width: 0;
-      }
-
       .form-grid {
         display: grid;
         gap: 0.85rem;
@@ -447,13 +374,8 @@
 
       .time-row {
         display: grid;
-        grid-template-columns: minmax(0, 60%) minmax(0, 35%);
+        grid-template-columns: minmax(0, 1fr) 130px;
         gap: 0.7rem;
-      }
-
-      #period {
-        background: #fdf9f2;
-        color: #1c1c1c;
       }
 
       .location-row {
@@ -493,7 +415,6 @@
       .preview p {
         margin: 0;
         font-size: 1.5rem;
-        overflow-wrap: anywhere;
       }
 
       .preview.pending p {
@@ -518,13 +439,6 @@
         color: var(--ok-text);
       }
 
-      .time-hint {
-        margin-top: -0.2rem;
-        font-size: 0.82rem;
-        color: var(--danger);
-        min-height: 1rem;
-      }
-
       #userModal {
         position: fixed;
         inset: 0;
@@ -532,20 +446,18 @@
         align-items: center;
         justify-content: center;
         padding: 1rem;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        z-index: 1500;
+        background: rgba(0, 0, 0, 0.62);
+        z-index: 1200;
       }
 
       .user-modal-box {
         width: min(420px, 100%);
-        background: #060606;
-        color: #f3efe4;
-        border: 1px solid #d4af37;
-        border-radius: 18px;
+        background: #1f1f1f;
+        color: var(--sidebar-text);
+        border: 1px solid rgba(245, 240, 232, 0.16);
+        border-radius: 14px;
         box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
-        padding: 1.3rem;
+        padding: 1.2rem;
       }
 
       .user-modal-title {
@@ -556,7 +468,7 @@
 
       .user-modal-subtitle {
         margin: 0.45rem 0 0.95rem;
-        color: #d6c28a;
+        color: #d5c8b4;
       }
 
       .user-modal-form {
@@ -567,27 +479,20 @@
       .user-modal-form input {
         width: 100%;
         border-radius: 10px;
-        border: 1px solid #b58f2e;
-        background: #101010;
-        color: #f3efe4;
+        border: 1px solid rgba(245, 240, 232, 0.24);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--sidebar-text);
         padding: 0.72rem 0.82rem;
         font: inherit;
       }
 
       .user-modal-form input::placeholder {
-        color: #9d8750;
+        color: #bfb4a2;
       }
 
       .user-modal-form input:focus-visible {
-        outline: 2px solid #ffd700;
+        outline: 2px solid rgba(200, 150, 62, 0.75);
         outline-offset: 1px;
-      }
-
-      .user-modal-error {
-        margin: -0.25rem 0 0;
-        min-height: 1rem;
-        color: #f1d069;
-        font-size: 0.9rem;
       }
 
       .login-screen {
@@ -642,56 +547,32 @@
       }
 
       #saveUserBtn {
-        border: 1px solid #ffd700;
+        border: 0;
         border-radius: 10px;
         padding: 0.74rem 0.88rem;
         font: inherit;
         font-weight: 700;
-        color: #ffd700;
-        background: #0b0b0b;
+        color: #251a0c;
+        background: var(--accent);
         cursor: pointer;
-        transition: background-color 140ms ease, color 140ms ease, filter 140ms ease;
+        transition: filter 140ms ease;
       }
 
       #saveUserBtn:hover {
-        background: #d4af37;
-        color: #0f0f0f;
-        filter: brightness(0.98);
+        filter: brightness(0.95);
       }
 
-      @media (max-width: 1024px) {
-        .content {
-          padding: 4.4rem 1.5rem 1.5rem;
-        }
-
-        .dot-pattern {
+      @media (max-width: 920px) {
+        .sidebar {
+          position: static;
           width: 100%;
-          height: 132px;
-          margin-bottom: 10px;
+          height: auto;
+          display: block;
         }
 
-        .brand {
-          --dot-size: 1.8px;
-          --dot-gap: 0.8px;
-          --letter-gap: 2px;
-          --line-gap: 4px;
-          --brand-scale: 1.12;
-          max-width: calc(100% / var(--brand-scale));
-          margin-bottom: 1.4rem;
-        }
-      }
-
-      @media (max-width: 768px) {
         .content {
-          padding: 4rem 1rem 1rem;
-        }
-
-        .habit-card {
-          align-items: flex-start;
-        }
-
-        .all-card .row-between {
-          align-items: flex-start;
+          margin-left: 0;
+          padding: 1rem;
         }
 
         .sentence {
@@ -714,6 +595,12 @@
           grid-template-columns: 1fr;
         }
 
+        .dot-pattern {
+          width: 100%;
+          height: 125px;
+          margin-bottom: 10px;
+        }
+
         .brand {
           --dot-size: 1.65px;
           --dot-gap: 0.8px;
@@ -728,58 +615,10 @@
           gap: var(--letter-gap);
         }
       }
-
-      @media (max-width: 480px) {
-        .content {
-          padding: 3.8rem 0.8rem 0.8rem;
-        }
-
-        .menu-toggle {
-          width: 40px;
-          height: 40px;
-          font-size: 1.4rem;
-        }
-
-        h1 {
-          font-size: 1.8rem;
-        }
-
-        .subhead,
-        .nav-link,
-        label,
-        .form-grid input,
-        .form-grid select,
-        .add-btn {
-          font-size: 0.95rem;
-        }
-
-        .sentence {
-          font-size: 0.98rem;
-        }
-
-        .preview p {
-          font-size: 1.05rem;
-        }
-
-        .habit-card,
-        .all-card,
-        .quote,
-        .empty-message,
-        .preview {
-          padding: 0.85rem;
-        }
-
-        .stack {
-          gap: 0.75rem;
-        }
-      }
     </style>
   </head>
   <body>
     <div class="app">
-      <button type="button" id="menu-toggle" class="menu-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
-      <div id="menu-overlay" class="menu-overlay" aria-hidden="true"></div>
-
       <aside class="sidebar">
         <h2 class="brand" aria-label="Habit Tracker">
           <span class="brand-word" aria-hidden="true">
@@ -836,10 +675,6 @@
         <div id="flash-message" class="flash-message"></div>
 
         <section id="page-today" class="page active">
-          <div id="today-welcome" class="today-welcome" hidden>
-            <p id="today-welcome-title" class="today-welcome-title"></p>
-            <p id="today-welcome-subtitle" class="today-welcome-subtitle">Let's make today's habits a little stronger.</p>
-          </div>
           <div class="section-head">
             <div class="dot-pattern" aria-hidden="true">
               <span style="--x: 1%; --y: 12%"></span><span style="--x: 3%; --y: 48%"></span><span style="--x: 6%; --y: 22%"></span><span style="--x: 8%; --y: 70%"></span><span style="--x: 10%; --y: 34%"></span><span style="--x: 12%; --y: 82%"></span><span style="--x: 14%; --y: 16%"></span><span style="--x: 16%; --y: 58%"></span><span style="--x: 18%; --y: 40%"></span><span style="--x: 20%; --y: 76%"></span>
@@ -912,16 +747,17 @@
                 id="time"
                 name="time"
                 type="text"
-                placeholder="e.g. 1030"
+                placeholder="10:00"
                 inputmode="numeric"
+                pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]$"
+                title="Use format HH:MM (example: 10:00)"
                 required
               />
               <select id="period" name="period" required>
-                <option value="AM" selected>AM</option>
+                <option value="AM">AM</option>
                 <option value="PM">PM</option>
               </select>
             </div>
-            <p id="time-hint" class="time-hint"></p>
 
             <label for="location">Location</label>
             <div class="location-row">
@@ -942,6 +778,9 @@
             <label for="frequency">Frequency</label>
             <select id="frequency" name="frequency" required>
               <option value="Daily">Daily</option>
+              <option value="Weekdays">Weekdays</option>
+              <option value="Weekends">Weekends</option>
+              <option value="Weekly">Weekly</option>
               <option value="Custom">Custom</option>
             </select>
 
@@ -973,31 +812,31 @@
       <div class="login-card">
         <h1 class="login-title">Habit Tracker</h1>
         <p class="login-tagline">Small steps. Big results.</p>
-        <a class="google-login-btn" href="https://habits.zenith-labs.app/api/auth/login">Sign in with Google</a>
+        <a class="google-login-btn" href="http://localhost:8000/auth/login">Sign in with Google</a>
       </div>
     </section>
 
     <div id="userModal" aria-hidden="true">
       <div class="user-modal-box" role="dialog" aria-modal="true" aria-labelledby="user-modal-title">
-        <h2 id="user-modal-title" class="user-modal-title">Welcome to Habit Tracker!</h2>
-        <p class="user-modal-subtitle">Before we get started, what should we call you?</p>
-        <form id="user-modal-form" class="user-modal-form">
-          <input id="userNameInput" type="text" placeholder="Your name" autocomplete="name" />
-          <p id="userNameError" class="user-modal-error" aria-live="polite"></p>
-          <button id="saveUserBtn" type="submit">Save my name</button>
-        </form>
+        <h2 id="user-modal-title" class="user-modal-title">Before we begin</h2>
+        <p class="user-modal-subtitle">Enter your details to track your habits</p>
+        <div class="user-modal-form">
+          <input id="userNameInput" type="text" placeholder="Name" />
+          <input id="userEmailInput" type="email" placeholder="Email" />
+          <button id="saveUserBtn" type="button">Continue</button>
+        </div>
       </div>
     </div>
 
     <script>
       // ============================================================
-      // Configuration and API constants
+      // Configuration and storage keys
       // ============================================================
-      const API_BASE_URL = "https://habits.zenith-labs.app/api";
+      const HABITS_KEY = "habits";
       const WEEK_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       const todayDate = new Date();
       const todayDay = WEEK_DAYS[todayDate.getDay()];
-      const todayIsoDate = todayDate.toISOString().slice(0, 10);
+      const completionsKey = `completions_${todayDate.toISOString().slice(0, 10)}`;
 
       // ============================================================
       // WEBHOOK CONFIGURATION — CHANGE ONLY THIS LINE WHEN READY
@@ -1007,12 +846,19 @@
       // ============================================================
       // State and DOM references
       // ============================================================
-      let token = localStorage.getItem("token") || "";
-      let habits = [];
-      let completions = {};
-      let userName = null;
-      let showNamePopup = false;
-      let tempName = "";
+      let habits = JSON.parse(localStorage.getItem(HABITS_KEY) || "[]");
+      let completions = JSON.parse(localStorage.getItem(completionsKey) || "{}");
+
+      habits = habits.map((habit) => {
+        const legacyLocation = habit["place"];
+        const { place: _legacyPlace, ...rest } = habit;
+        return {
+          ...rest,
+          location: habit.location || legacyLocation || "",
+          preposition: habit.preposition || "in"
+        };
+      });
+      localStorage.setItem(HABITS_KEY, JSON.stringify(habits));
 
       const pages = {
         today: document.getElementById("page-today"),
@@ -1021,21 +867,15 @@
       };
 
       const navLinks = Array.from(document.querySelectorAll(".nav-link"));
-      const menuToggleBtn = document.getElementById("menu-toggle");
-      const menuOverlay = document.getElementById("menu-overlay");
-      const sidebar = document.querySelector(".sidebar");
       const syncIndicator = document.getElementById("sync-indicator");
       const flashMessageEl = document.getElementById("flash-message");
       const todayDateEl = document.getElementById("today-date");
-      const todayWelcomeEl = document.getElementById("today-welcome");
-      const todayWelcomeTitleEl = document.getElementById("today-welcome-title");
       const todayListEl = document.getElementById("today-list");
       const allListEl = document.getElementById("all-list");
       const form = document.getElementById("habit-form");
       const nameInput = document.getElementById("name");
       const timeInput = document.getElementById("time");
       const periodInput = document.getElementById("period");
-      const timeHintEl = document.getElementById("time-hint");
       const locationInput = document.getElementById("location");
       const prepositionInput = document.getElementById("preposition");
       const frequencyInput = document.getElementById("frequency");
@@ -1045,258 +885,23 @@
       const previewSentenceEl = document.getElementById("preview-sentence");
       const successMsgEl = document.getElementById("success-msg");
       const userModal = document.getElementById("userModal");
-      const userModalForm = document.getElementById("user-modal-form");
       const userNameInput = document.getElementById("userNameInput");
-      const userNameErrorEl = document.getElementById("userNameError");
+      const userEmailInput = document.getElementById("userEmailInput");
       const saveUserBtn = document.getElementById("saveUserBtn");
       const appRoot = document.querySelector(".app");
       const loginScreen = document.getElementById("login-screen");
       const logoutBtn = document.getElementById("logout-btn");
-      let timeRawDigits = "";
+      let pendingHabitSubmit = false;
 
       // ============================================================
       // Utility helpers
       // ============================================================
-      function authHeaders() {
-        token = localStorage.getItem("token") || "";
-        return {
-          Authorization: `Bearer ${token}`
-        };
+      function saveHabits() {
+        localStorage.setItem(HABITS_KEY, JSON.stringify(habits));
       }
 
-      async function parseResponse(response) {
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || `Request failed with status ${response.status}`);
-        }
-
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          return response.json();
-        }
-
-        return response.text();
-      }
-
-      function normalizeHabit(habit) {
-        const legacyLocation = habit["place"];
-        return {
-          ...habit,
-          location: habit.location || legacyLocation || "",
-          preposition: habit.preposition || "in",
-          customDays: Array.isArray(habit.customDays) ? habit.customDays : []
-        };
-      }
-
-      function normalizeCompletions(data) {
-        if (Array.isArray(data)) {
-          return data.reduce((acc, item) => {
-            const habitId = item.habit_id ?? item.habitId ?? item.id;
-            if (habitId !== undefined && habitId !== null) {
-              acc[String(habitId)] = item.completed !== false;
-            }
-            return acc;
-          }, {});
-        }
-
-        if (data && typeof data === "object") {
-          if (Array.isArray(data.completions)) {
-            return normalizeCompletions(data.completions);
-          }
-
-          return Object.keys(data).reduce((acc, key) => {
-            acc[String(key)] = Boolean(data[key]);
-            return acc;
-          }, {});
-        }
-
-        return {};
-      }
-
-      function setLoadingState(message) {
-        showSyncStatus(message || "");
-      }
-
-      function renderTodayWelcome() {
-        if (!userName) {
-          todayWelcomeEl.hidden = true;
-          todayWelcomeTitleEl.textContent = "";
-          return;
-        }
-
-        todayWelcomeTitleEl.textContent = `Welcome to Habit Tracker, ${userName}!`;
-        todayWelcomeEl.hidden = false;
-      }
-
-      function setNameValidation(message) {
-        userNameErrorEl.textContent = message || "";
-      }
-
-      function openUserModal() {
-        showNamePopup = true;
-        userModal.style.display = "flex";
-        userModal.setAttribute("aria-hidden", "false");
-        document.body.classList.add("modal-open");
-        setNameValidation("");
-        userNameInput.value = tempName;
-        window.setTimeout(() => {
-          userNameInput.focus();
-        }, 0);
-      }
-
-      function closeUserModal() {
-        showNamePopup = false;
-        userModal.style.display = "none";
-        userModal.setAttribute("aria-hidden", "true");
-        document.body.classList.remove("modal-open");
-        setNameValidation("");
-      }
-
-      function updateNamePopupVisibility() {
-        if (showNamePopup) {
-          openUserModal();
-          return;
-        }
-
-        closeUserModal();
-      }
-
-      async function loadUserName() {
-        try {
-          const response = await fetch(`${API_BASE_URL}/user/name`, {
-            method: "GET",
-            headers: authHeaders()
-          });
-
-          if (response.status === 404) {
-            userName = null;
-            tempName = "";
-            showNamePopup = true;
-            renderTodayWelcome();
-            updateNamePopupVisibility();
-            return;
-          }
-
-          const data = await parseResponse(response);
-          const savedName = typeof data?.name === "string" ? data.name.trim() : "";
-
-          if (savedName) {
-            userName = savedName;
-            tempName = savedName;
-            showNamePopup = false;
-          } else {
-            userName = null;
-            tempName = "";
-            showNamePopup = true;
-          }
-
-          renderTodayWelcome();
-          updateNamePopupVisibility();
-        } catch (error) {
-          console.error("Load user name failed:", error);
-          userName = null;
-          tempName = "";
-          showNamePopup = true;
-          renderTodayWelcome();
-          updateNamePopupVisibility();
-        }
-      }
-
-      async function saveUserName() {
-        const name = userNameInput.value.trim();
-
-        if (!name) {
-          setNameValidation("Please enter your name.");
-          return;
-        }
-
-        tempName = name;
-
-        try {
-          saveUserBtn.disabled = true;
-          setNameValidation("");
-
-          const response = await fetch(`${API_BASE_URL}/user/name`, {
-            method: "POST",
-            headers: {
-              ...authHeaders(),
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ name })
-          });
-
-          const data = await parseResponse(response);
-          const savedName = typeof data?.name === "string" ? data.name.trim() : name;
-
-          userName = savedName || name;
-          tempName = userName;
-          renderTodayWelcome();
-          closeUserModal();
-        } catch (error) {
-          console.error("Save user name failed:", error);
-          setNameValidation("Could not save your name. Please try again.");
-        } finally {
-          saveUserBtn.disabled = false;
-        }
-      }
-
-      async function loadHabits() {
-        const response = await fetch(`${API_BASE_URL}/habits`, {
-          method: "GET",
-          headers: authHeaders()
-        });
-
-        const data = await parseResponse(response);
-          habits = (data.habits || []).map(normalizeHabit);
-      }
-
-      async function addHabit(habitData) {
-        const response = await fetch(`${API_BASE_URL}/habits`, {
-          method: "POST",
-          headers: {
-            ...authHeaders(),
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(habitData)
-        });
-
-        return parseResponse(response);
-      }
-
-      async function deleteHabit(id) {
-        const response = await fetch(`${API_BASE_URL}/habits/${id}`, {
-          method: "DELETE",
-          headers: authHeaders()
-        });
-
-        return parseResponse(response);
-      }
-
-      async function loadCompletions() {
-        const response = await fetch(`${API_BASE_URL}/completions/${todayIsoDate}`, {
-          method: "GET",
-          headers: authHeaders()
-        });
-
-        const data = await parseResponse(response);
-        completions = normalizeCompletions(data);
-      }
-
-      async function saveCompletion(habitId, completed) {
-        const response = await fetch(`${API_BASE_URL}/completions`, {
-          method: "POST",
-          headers: {
-            ...authHeaders(),
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            habit_id: habitId,
-            date: todayIsoDate,
-            completed
-          })
-        });
-
-        return parseResponse(response);
+      function saveCompletions() {
+        localStorage.setItem(completionsKey, JSON.stringify(completions));
       }
 
       function showLoginScreen() {
@@ -1334,66 +939,42 @@
         return `${weekday}, ${day} ${month}`;
       }
 
-      function formatRawTimeDigits(digits) {
-        const safeDigits = String(digits || "").replace(/\D/g, "").slice(0, 4);
-
-        if (safeDigits.length <= 2) {
-          return safeDigits;
+      function formatTime(value) {
+        if (!value) {
+          return "--:--";
         }
 
-        return `${safeDigits.slice(0, 2)}:${safeDigits.slice(2)}`;
+        const trimmed = String(value).trim();
+
+        if (/^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i.test(trimmed)) {
+          return trimmed.toUpperCase().replace(/\s+/, " ");
+        }
+
+        const twentyFourHourMatch = trimmed.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+        if (twentyFourHourMatch) {
+          const [h, m] = trimmed.split(":");
+          const d = new Date();
+          d.setHours(Number(h), Number(m), 0, 0);
+          return d.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+          });
+        }
+
+        return trimmed;
       }
 
-      function toStorageTime(digits) {
-        if (String(digits).length !== 4) {
-          return "";
-        }
-
-        return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
-      }
-
-      function isValidTwelveHourTime(value) {
-        const match = String(value || "").match(/^(\d{2}):(\d{2})$/);
-        if (!match) {
-          return false;
-        }
-
-        const hours = Number(match[1]);
-        const minutes = Number(match[2]);
-        return hours >= 1 && hours <= 12 && minutes >= 0 && minutes <= 59;
-      }
-
-      function combinedDisplayTime() {
-        const base = toStorageTime(timeRawDigits);
-        if (!base) {
-          return "";
-        }
-
-        return `${base} ${periodInput.value}`;
-      }
-
-      function updateTimeHint() {
-        const normalized = toStorageTime(timeRawDigits);
-        const isPotentiallyComplete = timeRawDigits.length === 4;
-
-        if (!timeRawDigits) {
-          timeHintEl.textContent = "";
-          return true;
-        }
-
-        if (isPotentiallyComplete && !isValidTwelveHourTime(normalized)) {
-          timeHintEl.textContent = "Enter a valid time (01-12)";
-          return false;
-        }
-
-        timeHintEl.textContent = "";
-        return isPotentiallyComplete;
+      function combineTime(timeValue, periodValue) {
+        const normalizedTime = timeValue.trim();
+        const normalizedPeriod = periodValue.trim().toUpperCase();
+        return `${normalizedTime} ${normalizedPeriod}`;
       }
 
       function habitSentence(habit) {
         const preposition = habit.preposition || "in";
         const location = habit.location || "";
-        return `I will ${habit.name} at ${habit.time || ""} ${preposition} ${location}`;
+        return `I will ${habit.name} at ${formatTime(habit.time)} ${preposition} ${location}`;
       }
 
       function showSyncStatus(message, type) {
@@ -1452,15 +1033,19 @@
         customDaysGroup.classList.toggle("active", isCustom);
       }
 
+      function openUserModal() {
+        userModal.style.display = "flex";
+        userModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("modal-open");
+      }
+
+      function closeUserModal() {
+        userModal.style.display = "none";
+        userModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("modal-open");
+      }
+
       async function continueHabitSubmission() {
-        const normalizedTime = toStorageTime(timeRawDigits);
-
-        if (!isValidTwelveHourTime(normalizedTime)) {
-          timeHintEl.textContent = "Enter a valid time (01-12)";
-          showFlashMessage("Please enter a valid time.", "error");
-          return;
-        }
-
         const selectedCustomDays = getSelectedCustomDays();
 
         if (frequencyInput.value === "Custom" && !selectedCustomDays.length) {
@@ -1469,8 +1054,9 @@
         }
 
         const newHabit = {
+          id: Date.now(),
           name: nameInput.value.trim(),
-          time: `${normalizedTime} ${periodInput.value}`,
+          time: combineTime(timeInput.value, periodInput.value),
           location: locationInput.value.trim(),
           preposition: prepositionInput.value,
           frequency: frequencyInput.value,
@@ -1478,22 +1064,14 @@
           customDays: frequencyInput.value === "Custom" ? selectedCustomDays : []
         };
 
-        try {
-          setLoadingState("Adding habit...");
-          await addHabit(newHabit);
-          await Promise.all([loadHabits(), loadCompletions()]);
-          renderTodayPage();
-          renderAllHabitsPage();
-        } catch (error) {
-          console.error("Add habit failed:", error);
-          showFlashMessage("Failed to add habit.", "error");
-          return;
-        } finally {
-          setLoadingState("");
-        }
+        habits.push(newHabit);
+        saveHabits();
+        renderTodayPage();
+        renderAllHabitsPage();
 
         await syncWebhook({
           action: "add",
+          id: newHabit.id,
           name: newHabit.name,
           time: newHabit.time,
           location: newHabit.location,
@@ -1505,14 +1083,11 @@
 
         successMsgEl.textContent = "Habit added. Stay consistent.";
         form.reset();
-        timeRawDigits = "";
-        timeInput.value = "";
         periodInput.value = "AM";
         prepositionInput.value = "in";
         customDayInputs.forEach((input) => {
           input.checked = false;
         });
-        timeHintEl.textContent = "";
         toggleCustomDaysVisibility();
         updatePreview();
         showPage("today");
@@ -1521,13 +1096,48 @@
 
       async function handleAddHabit(event) {
         event.preventDefault();
+
+        const storedEmail = localStorage.getItem("userEmail");
+        if (!storedEmail) {
+          pendingHabitSubmit = true;
+          openUserModal();
+          return;
+        }
+
         await continueHabitSubmission();
+      }
+
+      async function saveUserAndContinue() {
+        const name = userNameInput.value.trim();
+        const email = userEmailInput.value.trim();
+
+        if (!name || !email) {
+          showFlashMessage("Please enter name and email.", "error");
+          return;
+        }
+
+        if (!email.includes("@")) {
+          showFlashMessage("Please enter a valid email address.", "error");
+          return;
+        }
+
+        localStorage.setItem("userName", name);
+        localStorage.setItem("userEmail", email);
+
+        closeUserModal();
+
+        if (pendingHabitSubmit) {
+          pendingHabitSubmit = false;
+          await continueHabitSubmission();
+        }
       }
 
       // ============================================================
       // Webhook sync
       // ============================================================
       async function syncWebhook(payload) {
+        showSyncStatus("Syncing...");
+
         try {
           const response = await fetch(WEBHOOK_URL, {
             method: "POST",
@@ -1545,8 +1155,10 @@
           }
 
           console.log("Webhook response:", data);
+          showSyncStatus("Synced ✓", "success");
         } catch (error) {
           console.log("Webhook error:", error);
+          showSyncStatus("Sync failed (saved locally)", "error");
         }
       }
 
@@ -1572,7 +1184,7 @@
           const card = document.createElement("article");
           card.className = "habit-card";
 
-          const checked = Boolean(completions[String(habit.id)]);
+          const checked = Boolean(completions[habit.id]);
           if (checked) {
             card.classList.add("done");
           }
@@ -1581,66 +1193,17 @@
           checkbox.type = "checkbox";
           checkbox.checked = checked;
 
-          checkbox.addEventListener("change", async () => {
-            try {
-              setLoadingState("Saving completion...");
-              completions[String(habit.id)] = checkbox.checked;
-              await saveCompletion(habit.id, checkbox.checked);
-              await loadCompletions();
-              renderTodayPage();
-            } catch (error) {
-              console.error("Save completion failed:", error);
-              showFlashMessage("Failed to save completion.", "error");
-              checkbox.checked = !checkbox.checked;
-              completions[String(habit.id)] = checkbox.checked;
-              renderTodayPage();
-            } finally {
-              setLoadingState("");
-            }
+          checkbox.addEventListener("change", () => {
+            completions[habit.id] = checkbox.checked;
+            saveCompletions();
+            renderTodayPage();
           });
 
           const sentence = document.createElement("p");
           sentence.className = "sentence";
           sentence.textContent = habitSentence(habit);
 
-          const delBtn = document.createElement("button");
-          delBtn.className = "delete-btn";
-          delBtn.type = "button";
-          delBtn.setAttribute("aria-label", `Delete ${habit.name}`);
-          delBtn.innerHTML = "&#128465;";
-
-          delBtn.addEventListener("click", async () => {
-            try {
-              setLoadingState("Deleting habit...");
-              await deleteHabit(habit.id);
-              await Promise.all([loadHabits(), loadCompletions()]);
-              renderTodayPage();
-              renderAllHabitsPage();
-            } catch (error) {
-              console.error("Delete habit failed:", error);
-              showFlashMessage("Failed to delete habit.", "error");
-              return;
-            } finally {
-              setLoadingState("");
-            }
-
-            await syncWebhook({
-              action: "delete",
-              id: habit.id,
-              name: habit.name,
-              time: habit.time,
-              location: habit.location,
-              preposition: habit.preposition,
-              frequency: habit.frequency,
-              createdDay: habit.createdDay
-            });
-          });
-
-          const top = document.createElement("div");
-          top.className = "row-between";
-          top.append(sentence, delBtn);
-
-          card.append(checkbox, top);
+          card.append(checkbox, sentence);
           todayListEl.appendChild(card);
         });
       }
@@ -1671,19 +1234,12 @@
           delBtn.innerHTML = "&#128465;";
 
           delBtn.addEventListener("click", async () => {
-            try {
-              setLoadingState("Deleting habit...");
-              await deleteHabit(habit.id);
-              await Promise.all([loadHabits(), loadCompletions()]);
-              renderTodayPage();
-              renderAllHabitsPage();
-            } catch (error) {
-              console.error("Delete habit failed:", error);
-              showFlashMessage("Failed to delete habit.", "error");
-              return;
-            } finally {
-              setLoadingState("");
-            }
+            habits = habits.filter((h) => h.id !== habit.id);
+            delete completions[habit.id];
+            saveHabits();
+            saveCompletions();
+            renderTodayPage();
+            renderAllHabitsPage();
 
             await syncWebhook({
               action: "delete",
@@ -1711,38 +1267,17 @@
       function updatePreview() {
         const draft = {
           name: nameInput.value.trim(),
-          time: combinedDisplayTime(),
+          time: combineTime(timeInput.value, periodInput.value),
           location: locationInput.value.trim(),
           preposition: prepositionInput.value
         };
 
-        const hasValidTime = isValidTwelveHourTime(toStorageTime(timeRawDigits));
+        const hasValidTime = /^(0?[1-9]|1[0-2]):[0-5][0-9]$/.test(timeInput.value.trim());
         const filled = draft.name && hasValidTime && draft.location;
         previewSentenceEl.textContent = filled
-          ? `I will ${draft.name} at ${draft.time} ${draft.preposition} ${draft.location}`
+          ? `I will ${draft.name} at ${formatTime(draft.time)} ${draft.preposition} ${draft.location}`
           : "I will [name] at [time] in [location]";
         previewEl.classList.toggle("pending", !filled);
-      }
-
-      function openSidebar() {
-        sidebar.classList.add("open");
-        menuOverlay.classList.add("active");
-        menuToggleBtn.setAttribute("aria-expanded", "true");
-      }
-
-      function closeSidebar() {
-        sidebar.classList.remove("open");
-        menuOverlay.classList.remove("active");
-        menuToggleBtn.setAttribute("aria-expanded", "false");
-      }
-
-      function toggleSidebar() {
-        if (sidebar.classList.contains("open")) {
-          closeSidebar();
-          return;
-        }
-
-        openSidebar();
       }
 
       // ============================================================
@@ -1756,8 +1291,6 @@
         navLinks.forEach((btn) => {
           btn.classList.toggle("active", btn.dataset.page === pageKey);
         });
-
-        closeSidebar();
       }
 
       navLinks.forEach((btn) => {
@@ -1766,84 +1299,26 @@
         });
       });
 
-      [nameInput, locationInput, prepositionInput, frequencyInput].forEach((input) => {
+      [nameInput, timeInput, periodInput, locationInput, prepositionInput, frequencyInput].forEach((input) => {
         input.addEventListener("input", updatePreview);
       });
 
-      userNameInput.addEventListener("input", () => {
-        tempName = userNameInput.value;
-        setNameValidation("");
-      });
-
-      timeInput.addEventListener("keydown", (event) => {
-        if (event.key !== "Backspace" && event.key !== "Delete") {
-          return;
-        }
-
-        event.preventDefault();
-        timeRawDigits = timeRawDigits.slice(0, -1);
-        timeInput.value = formatRawTimeDigits(timeRawDigits);
-        updateTimeHint();
-        updatePreview();
-      });
-
-      timeInput.addEventListener("input", (event) => {
-        const inputType = event.inputType || "";
-
-        if (inputType.startsWith("delete")) {
-          timeInput.value = formatRawTimeDigits(timeRawDigits);
-          updateTimeHint();
-          updatePreview();
-          return;
-        }
-
-        const typedValue = event.data !== null ? event.data : timeInput.value;
-        const newDigits = String(typedValue || "").replace(/\D/g, "");
-
-        if (newDigits) {
-          timeRawDigits = `${timeRawDigits}${newDigits}`.slice(0, 4);
-        }
-
-        timeInput.value = formatRawTimeDigits(timeRawDigits);
-        updateTimeHint();
-        updatePreview();
-      });
-
+      periodInput.addEventListener("change", updatePreview);
       frequencyInput.addEventListener("change", () => {
         toggleCustomDaysVisibility();
         updatePreview();
       });
 
-      periodInput.addEventListener("change", updatePreview);
-
       customDayInputs.forEach((input) => {
         input.addEventListener("change", updatePreview);
       });
 
-      menuToggleBtn.addEventListener("click", (event) => {
-        event.stopPropagation();
-        toggleSidebar();
-      });
-
-      menuOverlay.addEventListener("click", closeSidebar);
-
-      document.addEventListener("click", (event) => {
-        if (!sidebar.classList.contains("open")) {
-          return;
-        }
-
-        if (sidebar.contains(event.target) || menuToggleBtn.contains(event.target)) {
-          return;
-        }
-
-        closeSidebar();
-      });
-
       form.addEventListener("submit", handleAddHabit);
 
-      userModalForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        await saveUserName();
+      saveUserBtn.addEventListener("click", saveUserAndContinue);
+
+      userModal.addEventListener("click", (event) => {
+        event.stopPropagation();
       });
 
       logoutBtn.addEventListener("click", () => {
@@ -1861,27 +1336,11 @@
           showLoginScreen();
         } else {
           showAppScreen();
+          renderTodayPage();
+          renderAllHabitsPage();
           toggleCustomDaysVisibility();
-          updateTimeHint();
           updatePreview();
-          todayListEl.innerHTML = '<div class="empty-message">Loading habits...</div>';
-          allListEl.innerHTML = '<div class="empty-message">Loading habits...</div>';
-
-          (async () => {
-            try {
-              setLoadingState("Loading habits...");
-              await Promise.all([loadHabits(), loadCompletions(), loadUserName()]);
-              renderTodayPage();
-              renderAllHabitsPage();
-            } catch (error) {
-              console.error("Initial load failed:", error);
-              showFlashMessage("Failed to load habits from server.", "error");
-              todayListEl.innerHTML = '<div class="empty-message">Could not load habits.</div>';
-              allListEl.innerHTML = '<div class="empty-message">Could not load habits.</div>';
-            } finally {
-              setLoadingState("");
-            }
-          })();
+          showSyncStatus("");
         }
       }
     </script>

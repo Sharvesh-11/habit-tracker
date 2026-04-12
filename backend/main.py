@@ -1,5 +1,4 @@
 import base64
-from datetime import datetime
 import hashlib
 import hmac
 import json
@@ -18,8 +17,6 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
-from sqlalchemy import DateTime, Integer, String, create_engine, func, select
-from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 
 load_dotenv()
@@ -29,49 +26,33 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 SECRET_KEY = os.getenv("SECRET_KEY", "")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
-DB_PATH = Path(os.getenv("DB_PATH", "/app/data/habit_tracker.db"))
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / "habit_tracker.db"
 TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7
-
-
-class Base(DeclarativeBase):
-	pass
-
-
-class AnalyticsUser(Base):
-	__tablename__ = "users_analytics"
-
-	id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-	email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-	name: Mapped[str] = mapped_column(String, nullable=False)
-	created_at: Mapped[datetime] = mapped_column(
-		DateTime(timezone=True), nullable=False, server_default=func.now()
-	)
-
-
-engine = create_engine(
-	f"sqlite:///{DB_PATH}",
-	connect_args={"check_same_thread": False},
-)
 
 
 class HabitCreate(BaseModel):
 	name: str
 	time: str
-	location: str
+	place: str
 	preposition: str
 	frequency: str
-	customDays: Optional[list] = None
+	customDays: Optional[str] = None
 	createdDay: str
+
+
+class HabitUpdate(BaseModel):
+	name: str
+	time: str
+	place: str
+	preposition: str
+	frequency: str
+	customDays: Optional[str] = None
 
 
 class CompletionCreate(BaseModel):
 	habit_id: int
 	date: str
-	completed: bool
-
-
-class UserName(BaseModel):
-	name: str
 
 
 def get_db_connection() -> sqlite3.Connection:
@@ -89,15 +70,20 @@ def init_db() -> None:
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				name TEXT NOT NULL,
 				time TEXT NOT NULL,
-				location TEXT NOT NULL,
+				place TEXT NOT NULL,
 				preposition TEXT NOT NULL,
 				frequency TEXT NOT NULL,
 				customDays TEXT,
 				createdDay TEXT NOT NULL,
-				user_email TEXT NOT NULL
+				user_email TEXT NOT NULL,
+				sort_order INTEGER DEFAULT 0
 			)
 			"""
 		)
+		try:
+			cursor.execute("ALTER TABLE habits ADD COLUMN sort_order INTEGER DEFAULT 0")
+		except sqlite3.OperationalError:
+			pass
 		cursor.execute(
 			"""
 			CREATE TABLE IF NOT EXISTS completions (
@@ -109,29 +95,7 @@ def init_db() -> None:
 			)
 			"""
 		)
-		cursor.execute(
-			"""
-			CREATE TABLE IF NOT EXISTS users (
-				email TEXT PRIMARY KEY,
-				name TEXT NOT NULL
-			)
-			"""
-		)
 		conn.commit()
-
-	Base.metadata.create_all(bind=engine)
-
-
-def ensure_analytics_user_exists(user_email: str, user_name: str) -> None:
-	with Session(engine) as session:
-		existing_id = session.execute(
-			select(AnalyticsUser.id).where(AnalyticsUser.email == user_email)
-		).scalar_one_or_none()
-		if existing_id is not None:
-			return
-
-		session.add(AnalyticsUser(email=user_email, name=user_name))
-		session.commit()
 
 
 def _base64url_encode(data: bytes) -> str:
@@ -283,18 +247,14 @@ def startup_event() -> None:
 
 @app.get("/auth/login")
 def auth_login() -> RedirectResponse:
-	"""
-	Start Google OAuth login.
-
-	In production, GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET should be set.
-	In tests or local dev without secrets, we still return a redirect to a
-	Google accounts URL with dummy values so the endpoint is testable.
-	"""
-	client_id = GOOGLE_CLIENT_ID or "test-client-id"
-	_client_secret = GOOGLE_CLIENT_SECRET or "test-client-secret"
+	if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+		raise HTTPException(
+			status_code=500,
+			detail="Google OAuth environment variables are not configured",
+		)
 
 	params = {
-		"client_id": client_id,
+		"client_id": GOOGLE_CLIENT_ID,
 		"redirect_uri": get_google_redirect_uri(),
 		"response_type": "code",
 		"scope": "openid email profile",
@@ -326,77 +286,15 @@ def auth_me(user_email: Annotated[str, Depends(get_current_user_email)]) -> dict
 	return {"email": user_email}
 
 
-@app.get("/user/name")
-def get_user_name(user_email: Annotated[str, Depends(get_current_user_email)]) -> dict:
-	with closing(get_db_connection()) as conn:
-		row = conn.execute(
-			"SELECT name FROM users WHERE email = ?",
-			(user_email,),
-		).fetchone()
-
-	if row:
-		return {"name": row["name"]}
-
-	return {"name": None}
-
-
-@app.post("/user/name")
-def upsert_user_name(
-	data: UserName,
-	user_email: Annotated[str, Depends(get_current_user_email)],
-) -> dict:
-	ensure_analytics_user_exists(user_email=user_email, user_name=data.name)
-
-	with closing(get_db_connection()) as conn:
-		conn.execute(
-			"""
-			INSERT INTO users (email, name)
-			VALUES (?, ?)
-			ON CONFLICT(email) DO UPDATE SET name = excluded.name
-			""",
-			(user_email, data.name),
-		)
-		conn.commit()
-
-	return {"email": user_email, "name": data.name}
-
-
-@app.get("/n8n/users")
-def n8n_get_users() -> list[dict]:
-	with Session(engine) as session:
-		rows = session.execute(select(AnalyticsUser).order_by(AnalyticsUser.id.asc())).scalars().all()
-
-	return [
-		{
-			"id": row.id,
-			"name": row.name,
-			"email": row.email,
-			"created_at": row.created_at,
-		}
-		for row in rows
-	]
-
-
 @app.get("/habits")
 def get_habits(user_email: Annotated[str, Depends(get_current_user_email)]) -> dict:
 	with closing(get_db_connection()) as conn:
 		rows = conn.execute(
-			"SELECT id, name, time, location, preposition, frequency, customDays, createdDay, user_email "
-			"FROM habits WHERE user_email = ? ORDER BY id DESC",
+			"SELECT id, name, time, place, preposition, frequency, customDays, createdDay, user_email, sort_order "
+			"FROM habits WHERE user_email = ? ORDER BY sort_order ASC, id ASC",
 			(user_email,),
 		).fetchall()
-	
-	habits = []
-	for row in rows:
-		habit = dict(row)
-		custom_days = habit.get('customDays')
-		if custom_days:
-			habit['customDays'] = json.loads(custom_days)
-		else:
-			habit['customDays'] = []
-		habits.append(habit)
-	
-	return {"habits": habits}
+	return {"habits": [dict(row) for row in rows]}
 
 
 @app.post("/habits")
@@ -406,16 +304,16 @@ def create_habit(
 	with closing(get_db_connection()) as conn:
 		cursor = conn.execute(
 			"""
-			INSERT INTO habits (name, time, location, preposition, frequency, customDays, createdDay, user_email)
+			INSERT INTO habits (name, time, place, preposition, frequency, customDays, createdDay, user_email)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 			""",
 			(
 				habit.name,
 				habit.time,
-				habit.location,
+				habit.place,
 				habit.preposition,
 				habit.frequency,
-				json.dumps(habit.customDays) if habit.customDays else None,
+				habit.customDays,
 				habit.createdDay,
 				user_email,
 			),
@@ -428,7 +326,7 @@ def create_habit(
 			"id": habit_id,
 			"name": habit.name,
 			"time": habit.time,
-			"location": habit.location,
+			"place": habit.place,
 			"preposition": habit.preposition,
 			"frequency": habit.frequency,
 			"customDays": habit.customDays,
@@ -436,6 +334,38 @@ def create_habit(
 			"user_email": user_email,
 		}
 	}
+
+
+@app.put("/habits/{id}")
+def update_habit(
+	id: int,
+	habit: HabitUpdate,
+	user_email: Annotated[str, Depends(get_current_user_email)],
+) -> dict:
+	with closing(get_db_connection()) as conn:
+		cursor = conn.execute(
+			"""
+			UPDATE habits
+			SET name = ?, time = ?, place = ?, preposition = ?, frequency = ?, customDays = ?
+			WHERE id = ? AND user_email = ?
+			""",
+			(
+				habit.name,
+				habit.time,
+				habit.place,
+				habit.preposition,
+				habit.frequency,
+				habit.customDays,
+				id,
+				user_email,
+			),
+		)
+		conn.commit()
+
+	if cursor.rowcount == 0:
+		raise HTTPException(status_code=404, detail="Habit not found")
+
+	return {"updated": True, "id": id}
 
 
 @app.delete("/habits/{id}")
@@ -467,11 +397,7 @@ def get_completions(
 			"WHERE user_email = ? AND date = ? ORDER BY id DESC",
 			(user_email, date),
 		).fetchall()
-	return {
-		"completions": [
-			{"habit_id": row["habit_id"], "completed": True} for row in rows
-		]
-	}
+	return {"completions": [dict(row) for row in rows]}
 
 
 @app.post("/completions")
@@ -503,30 +429,3 @@ def create_completion(
 			"user_email": user_email,
 		}
 	}
-@app.get("/n8n/habits")
-def n8n_get_all_habits() -> dict:
-	"""
-	Simple export endpoint for n8n:
-	Returns all habits for all users, with user_email.
-	"""
-	with closing(get_db_connection()) as conn:
-		rows = conn.execute(
-			"""
-			SELECT
-				h.id,
-				h.name,
-				h.time,
-				h.location,
-				h.preposition,
-				h.frequency,
-				h.customDays,
-				h.createdDay,
-				h.user_email,
-				u.name AS user_name
-			FROM habits h
-			LEFT JOIN users u ON h.user_email = u.email
-			ORDER BY h.id DESC
-			"""
-		).fetchall()
-
-	return {"habits": [dict(row) for row in rows]}
